@@ -35,7 +35,7 @@ generation that the official Stremio app doesn't support.
 
 ## Install
 
-Homebrew Channel → Settings → **Add repository** → paste the repo's `apps.json` URL →
+Homebrew Channel → Settings → **Add repository** → paste the repo's `apps.json` URL "https://simussu9-wq.github.io/stremiobrew/api/apps.json" →
 find **StremioBrew** → Install. 
 
 ---
