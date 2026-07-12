@@ -3,7 +3,7 @@
 A community Stremio client for **old, rooted LG webOS TVs** — the pre-WebAssembly
 generation that the official Stremio app doesn't support.
 
-> ⚠️ **Work in progress / still being tested.** It runs well on the one model it was
+> ⚠️ **still being tested.** It runs well on the one model it was
 > built on, but it has **not** been tested widely. Expect rough edges.
 
 ---
@@ -36,7 +36,7 @@ generation that the official Stremio app doesn't support.
 ## Install
 
 Homebrew Channel → Settings → **Add repository** → paste the repo's `apps.json` URL →
-find **StremioBrew** → Install. Reboot the TV first if another Stremio build is installed.
+find **StremioBrew** → Install. 
 
 ---
 
