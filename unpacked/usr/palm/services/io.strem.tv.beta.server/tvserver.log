@@ -16,3 +16,7 @@
 2026-08-04T14:02:57.668Z listening on :8080
 2026-08-04T14:02:57.794Z shell prewarmed
 2026-08-04T14:03:19.752Z [yt] rCj-Fb1OmXg unresolved
+2026-08-04T14:13:49.966Z tvserver starting, uid=501
+2026-08-04T14:13:49.968Z icon read failed: ENOENT: no such file or directory, open '/media/developer/apps/usr/palm/applications/io.strem.tv.beta/icon.png'
+2026-08-04T14:13:49.981Z listening on :8080
+2026-08-04T14:13:50.084Z shell prewarmed
