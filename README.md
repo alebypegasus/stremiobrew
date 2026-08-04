@@ -20,6 +20,8 @@ generation that the official Stremio app doesn't support.
 - Browse / Discover / Library / Search from your addons, with artwork & metadata
 - Debrid playback, external + embedded subtitles, resume, watched sync, scrub previews
 - Account sync (library / watched) with your other Stremio devices
+- **Multi-language UI** supporting 15+ languages including PT-BR, ES, FR, DE, IT, etc.
+- **Optimized for old hardware** with CSS `content-visibility` for smooth scrolling.
 
 ## Known limits & caveats (please read)
 
@@ -35,7 +37,7 @@ generation that the official Stremio app doesn't support.
 
 ## Install
 
-Homebrew Channel → Settings → **Add repository** → paste the repo's `apps.json` URL "https://simussu9-wq.github.io/stremiobrew/api/apps.json" →
+Homebrew Channel → Settings → **Add repository** → paste the repo's `apps.json` URL "https://stremiobrew.vercel.app/api/apps.json" →
 find **StremioBrew** → Install. 
 
 ---

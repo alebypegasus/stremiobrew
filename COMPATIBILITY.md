@@ -20,6 +20,8 @@ generation that the official Stremio app doesn't support.
 - Browse / Discover / Library / Search from your addons, with artwork & metadata
 - Debrid playback, external + embedded subtitles, resume, watched sync, scrub previews
 - Account sync (library / watched) with your other Stremio devices
+- **Multi-language UI** supporting 15+ languages including PT-BR, ES, FR, DE, IT, etc.
+- **Optimized for old hardware** with CSS `content-visibility` for smooth scrolling.
 
 ## Known limits & caveats (please read)
 

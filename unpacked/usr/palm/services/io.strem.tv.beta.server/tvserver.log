@@ -1,0 +1,18 @@
+2026-08-04T02:47:27.699Z tvserver starting, uid=501
+2026-08-04T02:47:27.704Z icon read failed: ENOENT: no such file or directory, open '/media/developer/apps/usr/palm/applications/io.strem.tv.beta/icon.png'
+2026-08-04T02:47:27.721Z listening on :8080
+2026-08-04T02:47:27.839Z shell prewarmed
+2026-08-04T03:05:08.712Z tvserver starting, uid=501
+2026-08-04T03:05:08.713Z icon read failed: ENOENT: no such file or directory, open '/media/developer/apps/usr/palm/applications/io.strem.tv.beta/icon.png'
+2026-08-04T03:05:08.728Z listening on :8080
+2026-08-04T03:05:08.839Z shell prewarmed
+2026-08-04T04:12:45.529Z [yt] rCj-Fb1OmXg unresolved
+2026-08-04T04:16:05.665Z [yt] 9mi3YVYm3ZU unresolved
+2026-08-04T04:26:26.218Z [yt] rCj-Fb1OmXg unresolved
+2026-08-04T04:29:39.885Z [yt] rCj-Fb1OmXg unresolved
+2026-08-04T04:35:01.611Z [yt] rCj-Fb1OmXg unresolved
+2026-08-04T14:02:57.646Z tvserver starting, uid=501
+2026-08-04T14:02:57.648Z icon read failed: ENOENT: no such file or directory, open '/media/developer/apps/usr/palm/applications/io.strem.tv.beta/icon.png'
+2026-08-04T14:02:57.668Z listening on :8080
+2026-08-04T14:02:57.794Z shell prewarmed
+2026-08-04T14:03:19.752Z [yt] rCj-Fb1OmXg unresolved
