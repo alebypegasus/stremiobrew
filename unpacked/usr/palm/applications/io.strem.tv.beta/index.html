@@ -2,23 +2,60 @@
 <html>
 <head><meta charset="UTF-8"><title>StremioBrew</title>
 <style>
-html,body{margin:0;height:100%;background:#0c0b11;font-family:sans-serif;overflow:hidden}
-#splash{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center}
+html,body{margin:0;height:100%;background:#0c0b11 url('splash.jpg') no-repeat center center / cover;font-family:sans-serif;overflow:hidden}
+#splashVideo{position:fixed;inset:0;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:100;background:#0c0b11;transition:opacity 0.5s ease}
+#splash{position:fixed;inset:0;top:0;left:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:1}
 #logo{width:168px;height:168px;border-radius:38px;object-fit:cover;box-shadow:0 16px 60px rgba(0,0,0,.5);animation:b 2.2s ease-in-out infinite}
-#hint{position:fixed;left:0;right:0;bottom:13%;text-align:center;color:rgba(255,255,255,.5);font-size:20px;letter-spacing:.5px;opacity:0;transition:opacity .6s}
+#hint{position:fixed;left:0;right:0;bottom:13%;text-align:center;color:rgba(255,255,255,.5);font-size:20px;letter-spacing:.5px;opacity:0;transition:opacity .6s;z-index:2}
 @keyframes b{0%,100%{transform:scale(1);opacity:.82}50%{transform:scale(1.06);opacity:1}}
 </style></head>
 <body>
+<video id="splashVideo" src="splash.mp4" autoplay muted playsinline></video>
 <div id="splash"><img id="logo" src="icon.png"></div>
 <div id="hint">Starting Stremio&#8230;</div>
 <script>
-// Same launcher as the classic app (proven): start tvserver via Homebrew exec if
-// :8080 isn't up, wait for the port in the exec itself, poll /ping, then load the
-// BETA shell. Both apps share one server; whichever launches first starts it.
 var SVC = '/media/developer/apps/usr/palm/services/io.strem.tv.beta.server';
 var SHELL_URL = 'http://127.0.0.1:8080/beta';
 var done = false;
-function go() { if (!done) { done = true; window.location.replace(SHELL_URL); } }
+var serverReady = false;
+var videoEnded = false;
+
+var video = document.getElementById('splashVideo');
+
+function go() {
+  if (!done) {
+    done = true;
+    window.location.replace(SHELL_URL);
+  }
+}
+
+function checkReadyToGo() {
+  if (serverReady && (videoEnded || !video)) {
+    go();
+  }
+}
+
+if (video) {
+  video.onended = function() {
+    videoEnded = true;
+    video.style.opacity = '0';
+    setTimeout(function() { if (video.parentNode) video.parentNode.removeChild(video); }, 500);
+    checkReadyToGo();
+  };
+  video.onerror = function() {
+    videoEnded = true;
+    if (video.parentNode) video.parentNode.removeChild(video);
+    checkReadyToGo();
+  };
+  setTimeout(function() {
+    if (!videoEnded) {
+      videoEnded = true;
+      checkReadyToGo();
+    }
+  }, 8000);
+} else {
+  videoEnded = true;
+}
 
 var cmd =
   'SVC=' + SVC + '; ' +
@@ -32,7 +69,12 @@ var cmd =
 
 try {
   var bridge = new PalmServiceBridge();
-  bridge.onservicecallback = function (response) { if (String(response).indexOf('TVUP') >= 0) go(); };
+  bridge.onservicecallback = function (response) {
+    if (String(response).indexOf('TVUP') >= 0) {
+      serverReady = true;
+      checkReadyToGo();
+    }
+  };
   bridge.call('luna://org.webosbrew.hbchannel.service/exec', JSON.stringify({ command: cmd }));
 } catch (e) {}
 
@@ -50,8 +92,12 @@ function ping(cb) {
 function poll() {
   if (done) return;
   ping(function (up) {
-    if (up) { go(); return; }
-    setTimeout(poll, 200);   // keep waiting on the logo — never show an error screen
+    if (up) {
+      serverReady = true;
+      checkReadyToGo();
+      return;
+    }
+    setTimeout(poll, 200);
   });
 }
 poll();
