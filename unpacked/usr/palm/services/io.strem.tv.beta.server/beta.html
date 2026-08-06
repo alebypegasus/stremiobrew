@@ -159,10 +159,21 @@ var dict = {
     "Subtitles": "Altyazılar"
   }
 };
+Object.assign(dict.pt, {"QR unavailable — use email": "QR indisponível — use o e-mail", "Waiting for your phone…": "Aguardando seu telefone…"});
+Object.assign(dict.es, {"QR unavailable — use email": "QR no disponible — usa correo", "Waiting for your phone…": "Esperando tu teléfono…"});
+Object.assign(dict.fr, {"QR unavailable — use email": "QR indisponible — utilisez l'e-mail", "Waiting for your phone…": "En attente de votre téléphone…"});
+Object.assign(dict.de, {"QR unavailable — use email": "QR nicht verfügbar — E-Mail nutzen", "Waiting for your phone…": "Warte auf Ihr Telefon…"});
+Object.assign(dict.it, {"QR unavailable — use email": "QR non disponibile — usa email", "Waiting for your phone…": "In attesa del tuo telefono…"});
+
 function t(s){
   try {
-    var lang = localStorage.getItem('uiLang') || '"en"';
-    lang = lang.replace(/"/g, '');
+    var lang = localStorage.getItem('uiLang');
+    if (!lang) {
+      lang = navigator.language || navigator.userLanguage || 'en';
+      lang = lang.substring(0, 2);
+    } else {
+      lang = lang.replace(/"/g, '');
+    }
     var base = lang.split('-')[0];
     if (dict[base] && dict[base][s]) return dict[base][s];
     if (dict[lang] && dict[lang][s]) return dict[lang][s];
@@ -351,21 +362,23 @@ body.trailer #dWrap{opacity:.14}
 #setItems > .setgrp:first-child{margin-top:6px}
 
 /* ---------- login ---------- */
-#lgWrap{position:absolute;top:0;left:0;right:0;bottom:0;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center}
-#lgBox{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center}
+#lgWrap{position:absolute;top:0;left:0;right:0;bottom:0;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;background:url(/splash.jpg) no-repeat center center / cover}
+#lgWrap::before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(12,11,17,0.6);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#lgBox{position:relative;z-index:2;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;background:rgba(20,18,30,.75);padding:60px 80px;border-radius:32px;box-shadow:0 24px 80px rgba(0,0,0,.6);border:1px solid rgba(255,255,255,.08);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+#lgLogo{position:absolute;top:-60px;left:50%;transform:translateX(-50%);width:120px;height:120px;border-radius:28px;box-shadow:0 16px 40px rgba(0,0,0,.4)}
 #lgQr{text-align:center;padding-right:90px;border-right:1px solid rgba(255,255,255,.14)}
-#lgQr h2{font-size:40px;margin:0 0 10px}
-#lgQr .s{font-size:24px;color:rgba(255,255,255,.6);margin-bottom:26px}
-#lgQrImg{width:300px;height:300px;background:#fff;border-radius:18px;padding:12px;box-sizing:border-box}
-#lgCode{font-size:46px;letter-spacing:9px;font-weight:800;margin-top:20px}
-#lgStat{margin-top:14px;font-size:22px;color:rgba(255,255,255,.6)}
-#lgForm{padding-left:90px}
-#lgForm h2{font-size:40px;margin:0 0 22px}
-.lgin{display:block;width:520px;padding:18px 24px;margin-bottom:16px;font-size:28px;border:0;border-radius:12px;background:rgba(255,255,255,.10);color:#fff;outline:none}
-.lgin.f{background:rgba(255,255,255,.22);box-shadow:0 0 0 3px #fff}
-#lgBtn{display:inline-block;padding:16px 54px;border-radius:12px;font-size:29px;font-weight:700;background:rgba(255,255,255,.14)}
-#lgBtn.f{background:#fff;color:#0c0b11}
-#lgErr{margin-top:16px;font-size:23px;color:#ff9a9a;min-height:28px}
+#lgQr h2{font-size:42px;margin:0 0 10px;font-weight:700}
+#lgQr .s{font-size:24px;color:rgba(255,255,255,.65);margin-bottom:26px}
+#lgQrImg{width:300px;height:300px;background:#fff;border-radius:24px;padding:16px;box-sizing:border-box;box-shadow:0 12px 32px rgba(0,0,0,.3)}
+#lgCode{font-size:48px;letter-spacing:10px;font-weight:800;margin-top:24px;color:#8a5aE9}
+#lgStat{margin-top:16px;font-size:24px;color:rgba(255,255,255,.7)}
+#lgForm{padding-left:90px;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-align-items:flex-start;align-items:flex-start}
+#lgForm h2{font-size:42px;margin:0 0 28px;font-weight:700}
+.lgin{display:block;width:520px;padding:22px 28px;margin-bottom:20px;font-size:26px;border:0;border-radius:16px;background:rgba(255,255,255,.07);color:#fff;outline:none;transition:all .3s ease;box-shadow:inset 0 2px 4px rgba(0,0,0,.2)}
+.lgin.f{background:rgba(255,255,255,.15);box-shadow:0 0 0 3px #8a5aE9,inset 0 2px 4px rgba(0,0,0,.2)}
+#lgBtn{display:inline-block;padding:20px 60px;border-radius:16px;font-size:28px;font-weight:700;background:rgba(255,255,255,.1);color:#fff;transition:all .3s ease;text-align:center;margin-top:10px}
+#lgBtn.f{background:linear-gradient(135deg,#7b5bf5,#a07cff);color:#fff;box-shadow:0 8px 24px rgba(124,92,255,.4);transform:scale(1.02)}
+#lgErr{margin-top:20px;font-size:24px;color:#ff6b6b;min-height:30px}
 
 /* ---------- misc ---------- */
 #toast{position:fixed;left:50%;top:7%;-webkit-transform:translateX(-50%);transform:translateX(-50%);background:rgba(20,18,30,.9);font-size:28px;font-weight:600;padding:14px 32px;border-radius:30px;opacity:0;transition:opacity .25s;z-index:60;pointer-events:none}
@@ -426,6 +439,7 @@ body.trailer #dWrap{opacity:.14}
 
 <div class="scr" id="scrLogin">
   <div id="lgWrap"><div id="lgBox">
+    <img id="lgLogo" src="/logo.png">
     <div id="lgQr"><h2></h2><div class="s"></div><img id="lgQrImg"><div id="lgCode"></div><div id="lgStat"></div></div>
     <div id="lgForm"><h2></h2>
       <input class="lgin" id="lgEmail">
@@ -1497,8 +1511,8 @@ enter:function(){
 startQr:function(){
   if(this.started)return;this.started=true;var self=this;
   xhrJson('https://link.stremio.com/api/create',function(j){
-    if(!j||!j.code){$('lgStat').textContent='QR unavailable — use email';return;}
-    $('lgQrImg').src=j.qrcode;$('lgCode').textContent=j.code;$('lgStat').textContent='Waiting for your phone…';
+    if(!j||!j.code){$('lgStat').textContent=t('QR unavailable — use email');return;}
+    $('lgQrImg').src=j.qrcode;$('lgCode').textContent=j.code;$('lgStat').textContent=t('Waiting for your phone…');
     self.poll=setInterval(function(){
       xhrJson('https://link.stremio.com/api/read?code='+encodeURIComponent(j.code),function(r){
         var ak=r&&r.result&&(r.result.authKey||r.result.auth_key);
@@ -1512,12 +1526,12 @@ doEmail:function(){
   $('lgErr').textContent='';toast(t('Signing in…'));var self=this;
   postJson(API+'/api/login',{email:em,password:pw},function(r){
     var res=r&&r.result;
-    if(!res||!res.authKey){$('lgErr').textContent=(r&&r.error&&r.error.message)||'Sign-in failed';return;}
+    if(!res||!res.authKey){$('lgErr').textContent=(r&&r.error&&r.error.message)||t('Sign-in failed');return;}
     if(res.user)lsSet('user',res.user);
     self.finish(res.authKey);});},
-finish:function(ak){
+  finish:function(ak){
   lsSet('authKey',ak);
-  $('lgStat').textContent='Signed in! Loading…';
+  $('lgStat').textContent=t('Signed in! Loading…');
   postJson(API+'/api/getUser',{authKey:ak},function(j){
     if(j&&j.result)lsSet('user',j.result);
     syncAddons(function(){location.reload();});

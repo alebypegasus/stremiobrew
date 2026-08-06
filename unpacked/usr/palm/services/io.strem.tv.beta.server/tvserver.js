@@ -1395,6 +1395,12 @@ http.createServer(function (req, res) {
     res.end('ok');
   } else if (p === '/' || p === '/index.html') {
     waitForServer(function () { serveShell(res); });
+  } else if (p === '/splash.jpg') {
+    fs.readFile(path.join(DIR, '../../applications/io.strem.tv.beta/splash.jpg'), function (err, buf) {
+      if (err) { res.writeHead(404); res.end(); return; }
+      res.writeHead(200, { 'Content-Type': 'image/jpeg' });
+      res.end(buf);
+    });
   } else if (p === '/beta') {
     // The custom Netflix-like shell — a real file on disk (never strings-in-strings again).
     // Read per-request: tiny file, always fresh after an scp, no restart needed.
