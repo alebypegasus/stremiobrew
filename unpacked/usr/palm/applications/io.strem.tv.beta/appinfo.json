@@ -10,5 +10,8 @@
   "splashBackground": "splash.jpg",
   "bgColor": "#0c0b11",
   "iconColor": "#7b5bf5",
-  "resolution": "1920x1080"
+  "resolution": "1920x1080",
+  "uiRevision": 2,
+  "transparent": true,
+  "disableBackHistoryAPI": true
 }

@@ -1,0 +1,17 @@
+# macOS
+.DS_Store
+**/.DS_Store
+
+# Node
+node_modules/
+
+# Build artifacts / Packaging
+*.ipk
+control.tar.gz
+data.tar.gz
+debian-binary
+control_unpacked/
+temp_revert/
+
+# Logs
+*.log
