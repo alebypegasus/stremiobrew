@@ -19,7 +19,7 @@
         "sourceUrl": "https://stremiobrew.vercel.app",
         "rootRequired": true,
         "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_1.4.0_all.ipk",
-        "ipkHash": { "sha256": "b78fb285393ea4ebd1d791f111c2b1a8aa82d13e2bdda5656809a6c5656ccab9" }
+        "ipkHash": { "sha256": "713d7f6c2c03bbdda7a9a19cfd28e9cb125d73f36ba63836e2513f5dee679a29" }
       }
     }
   ]
