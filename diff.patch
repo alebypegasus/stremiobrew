@@ -1,0 +1,55 @@
+commit a720cadb69cde7f0a9a2f884d7e87c36bdd1b874
+Author: Alessandro <ale.ramos.oliveira@hotmail.com>
+Date:   Thu Aug 6 23:56:40 2026 -0300
+
+    feat: implement premium typography, animations, and glassmorphism
+
+diff --git a/unpacked/usr/palm/services/io.strem.tv.beta.server/beta.html b/unpacked/usr/palm/services/io.strem.tv.beta.server/beta.html
+index 13c4d5a..6ea6d6d 100644
+--- a/unpacked/usr/palm/services/io.strem.tv.beta.server/beta.html
++++ b/unpacked/usr/palm/services/io.strem.tv.beta.server/beta.html
+@@ -49,7 +49,7 @@ var dict = {
+     "Generating code…": "Generando código...", "Or use email": "O usa el correo", "Sign in": "Iniciar sesión",
+     "Streams": "Fuentes", "UI Language": "Idioma del Sistema", "Language": "Idioma", "Subtitles": "Subtítulos",
+     "Signed in": "Conectado", "Free account": "Cuenta Gratis", "Premium until ": "Premium hasta ",
+-    "Subtitle size": "Tamaño de subtítulos", "Default subtitles": "Subtítulos por defecto", "White": "Blanco",
++    "Subtitle size": "Tamaño de subtítulos", "Default subtítulos": "Subtítulos por defecto", "White": "Blanco",
+     "Yellow": "Amarillo", "Cyan": "Cian", "Subtitle colour": "Color de subtítulo", "Black": "Negro",
+     "Subtitle outline": "Borde de subtítulo", "None": "Ninguno", "Solid": "Sólido", "Transparent": "Transparente",
+     "Subtitle background": "Fondo de subtítulo", "Extract (recommended)": "Extraer (recomendado)", "TV native": "Nativo de TV",
+@@ -182,10 +182,8 @@ function t(s){
+ }
+ </script>
+ <style>
+-/* Designed for the 1920x1080 webview. Netflix-like, BIG and clear.
+-   RULES LEARNED ON THIS TV: no blurred shadows, no scale animations, transform-only
+-   motion, static focus ring, class-based focus (never :focus). */
+-html,body{margin:0;padding:0;width:100%;height:100%;background:#0c0b11;color:#fff;font-family:sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
++@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
++html,body{margin:0;padding:0;width:100%;height:100%;background:#0c0b11;color:#fff;font-family:'Inter',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;user-select:none;}
+ img{border:0}
+ 
+ /* two-layer backdrop: incoming art fades IN over the old one = true crossfade, no pop.
+@@ -245,11 +243,11 @@ body.trailer #dWrap{opacity:.14}
+ .rowtitle{font-size:30px;font-weight:700;margin:0 0 14px 4px;color:rgba(255,255,255,.95)}
+ .cards{white-space:nowrap}
+ .cards.snap{transition:none}
+-.card{display:inline-block;vertical-align:top;position:relative;width:220px;height:330px;margin-right:20px;border-radius:10px;background:#1b1927;overflow:hidden;transition:transform .13s ease;will-change:transform}
++.card{display:inline-block;vertical-align:top;position:relative;width:220px;height:330px;margin-right:20px;border-radius:10px;background:#1b1927;overflow:hidden;transition:transform 0.2s ease, box-shadow 0.2s ease;will-change:transform}
+ .card img{width:100%;height:100%;border-radius:14px}
+ .card .nm{position:absolute;top:0;left:0;right:0;bottom:0;padding:16px;font-size:28px;line-height:1.3;white-space:normal;color:rgba(255,255,255,.9)}
+ .titlelabel{position:absolute;left:0;right:0;bottom:0;padding:34px 15px 13px;font-size:25px;font-weight:600;background:linear-gradient(transparent,rgba(0,0,0,.92));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+-.card.f{box-shadow:0 0 0 5px #fff !important;z-index:6;transform:translateY(-8px)}
++.card.f{box-shadow:0 0 0 5px #c9b8ff, 0 12px 30px rgba(0,0,0,0.6) !important;z-index:6;transform:scale(1.05)}
+ .card.wide{width:430px;height:242px}
+ .pbar{position:absolute;left:0;right:0;bottom:0;height:9px;background:rgba(255,255,255,.25)}
+ .pbar div{height:100%;background:#8c5cff}
+@@ -286,7 +284,7 @@ body.trailer #dWrap{opacity:.14}
+ .ep.f{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 3px #fff}
+ .ep.w .t{color:#a98fff}
+ 
+-#streams{position:fixed;top:0;right:0;bottom:0;width:800px;background:rgba(16,14,24,.98);z-index:40;display:none;padding:30px 30px;box-sizing:border-box}
++#streams{position:fixed;top:0;right:0;bottom:0;width:800px;background:rgba(12,11,17,0.7);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-left:1px solid rgba(255,255,255,0.1);z-index:40;display:none;padding:30px 30px;box-sizing:border-box}
+ #streams h3{margin:0 0 8px;font-size:38px}
+ #stSub{font-size:26px;color:rgba(255,255,255,.65);margin-bottom:16px}
+ #stChips{white-space:nowrap;overflow:hidden;margin-bottom:8px}
