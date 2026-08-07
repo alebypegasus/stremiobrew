@@ -1,14 +1,14 @@
 {
   "id": "io.strem.tv.beta",
-  "version": "1.6.0",
+  "version": "2.0.0",
   "type": "web",
   "title": "StremioBrew",
   "appDescription": "Community Stremio client for rooted webOS 4 TVs. Work in progress — tested on one model only. Bring your own account and addons.",
   "iconUri": "https://stremiobrew.vercel.app/icon.png",
   "sourceUrl": "https://stremiobrew.vercel.app",
   "rootRequired": true,
-  "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_1.6.0_all.ipk",
+  "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_2.0.0_all.ipk",
   "ipkHash": {
-    "sha256": "a85e716f684a95fed7f8b295c3087bd9b94eee36988eb6f0937ca6724e2f6a19"
+    "sha256": "3164b040957f02aa09a62e4ffe7a828b0f5cf225dc542ff262a752004542dbf0"
   }
 }
