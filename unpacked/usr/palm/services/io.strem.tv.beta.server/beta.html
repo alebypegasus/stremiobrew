@@ -106,7 +106,7 @@ var dict = {
     "Your library is empty.<br>Hold OK on any title (or use + Library) to add it here.": "Votre bibliothèque est vide.<br>Maintenez OK sur n'importe quel titre pour l'ajouter.",
     "Finding similar titles…": "Recherche de titres similaires...", "Nothing found.": "Rien trouvé.", "Specials": "Spéciaux",
     "Season ": "Saison ", "Episode ": "Épisode ", "Searching streams…": "Recherche de flux...", "No streams found.": "Aucun flux trouvé.",
-    "No streams from this fournisseur yet…": "Aucun flux de ce fournisseur pour l'instant...", "Searching…": "Recherche...",
+    "No streams from this provider yet…": "Aucun flux de ce fournisseur pour l'instant...", "Searching…": "Recherche...",
     "No results for “": "Aucun résultat pour “", "Enter email and password": "Entrez l'e-mail et le mot de passe", "Sign-in failed": "Échec de la connexion",
     "Signed in! Loading…": "Connecté ! Chargement...", "All": "Tous", "Cast": "Distribution", "Director": "Réalisateur", "Writers": "Scénaristes",
     "Country": "Pays", "Awards": "Récompenses"
@@ -154,12 +154,36 @@ var dict = {
     "Press OK to type, Down for results": "Premi OK per digitare, Giù per i risultati",
     "Email": "E-mail", "Password": "Password",
     "Left / Right to change · settings apply to the player instantly": "Sinistra / Destra per cambiare · si applica all'istante",
-    "Or use email": "Veya e-posta kullanın",
-    "Sign in": "Giriş yap",
-    "Streams": "Kaynaklar",
-    "UI Language": "Arayüz Dili",
-    "Language": "Dil",
-    "Subtitles": "Altyazılar"
+    "Sign in with your phone": "Accedi con il telefono", "Scan the code with your camera": "Scansiona il codice con la fotocamera",
+    "Generating code…": "Generazione codice in corso...", "Or use email": "O usa l'email", "Sign in": "Accedi",
+    "Pin to TV": "Aggiungi alla TV", "Pinned to TV!": "Aggiunto alla TV!",
+    "Streams": "Fonti", "UI Language": "Lingua di sistema", "Language": "Lingua", "Subtitles": "Sottotitoli",
+    "Signed in": "Accesso effettuato", "Free account": "Account gratuito", "Premium until ": "Premium fino a ",
+    "Subtitle size": "Dimensione sottotitoli", "Default subtitles": "Sottotitoli predefiniti", "White": "Bianco",
+    "Yellow": "Giallo", "Cyan": "Ciano", "Subtitle colour": "Colore sottotitoli", "Black": "Nero",
+    "Subtitle outline": "Contorno sottotitoli", "None": "Nessuno", "Solid": "Solido", "Transparent": "Trasparente",
+    "Subtitle background": "Sfondo sottotitoli", "Extract (recommended)": "Estrai (consigliato)", "TV native": "Nativo TV",
+    "Embedded subtitles engine": "Motore sottotitoli integrato", "Audio": "Audio", "Auto audio track": "Traccia audio automatica",
+    "On": "Acceso", "Off": "Spento", "Default audio language": "Lingua audio predefinita", "Playback": "Riproduzione",
+    "Seek step": "Passo di avanzamento", "Auto-play next episode": "Riproduci prossimo episodio", "Background trailers": "Trailer in background",
+    "Scrubbing previews": "Anteprime di avanzamento", "Addons": "Componenti aggiuntivi", "Sync addons now": "Sincronizza ora",
+    "Account": "Account", "Log out": "Esci", "Loading trailer…": "Caricamento trailer...",
+    "Trailer unavailable": "Trailer non disponibile", "No trailer available": "Nessun trailer disponibile",
+    "Removed from Library": "Rimosso dalla Libreria", "Added to Library": "Aggiunto alla Libreria",
+    "Mark as watched": "Segna come visto", "Marked as watched": "Segnato come visto", "Could not load title": "Impossibile caricare il titolo",
+    "Syncing…": "Sincronizzazione in corso...", "Addons updated": "Componenti aggiornati", "Addons up to date": "Componenti aggiornati",
+    "Signing out…": "Disconnessione...", "Signing in…": "Accesso in corso...", "Resume": "Riprendi", "Play": "Riproduci",
+    "Details": "Dettagli", "Watch something similar": "Guarda qualcosa di simile", "Trailer": "Trailer",
+    "Remove from Library": "Rimuovi dalla Libreria", "Add to Library": "Aggiungi alla Libreria",
+    "Similar": "Simile", "Similar to": "Simile a", "In Library": "Nella Libreria", "+ Library": "+ Libreria",
+    "Addon": "Addon", "Continue Watching": "Continua a guardare",
+    "Your library is empty.<br>Hold OK on any title (or use + Library) to add it here.": "La tua libreria è vuota.<br>Tieni premuto OK su un titolo per aggiungerlo.",
+    "Finding similar titles…": "Ricerca titoli simili...", "Nothing found.": "Nessun risultato.", "Specials": "Speciali",
+    "Season ": "Stagione ", "Episode ": "Episodio ", "Searching streams…": "Ricerca fonti...", "No streams found.": "Nessuna fonte trovata.",
+    "No streams from this provider yet…": "Nessuna fonte da questo provider...", "Searching…": "Ricerca in corso...",
+    "No results for “": "Nessun risultato per “", "Enter email and password": "Inserisci email e password", "Sign-in failed": "Accesso fallito",
+    "Signed in! Loading…": "Accesso effettuato! Caricamento...", "All": "Tutti", "Cast": "Cast", "Director": "Regista", "Writers": "Sceneggiatori",
+    "Country": "Paese", "Awards": "Premi"
   }
 };
 Object.assign(dict.pt, {"QR unavailable — use email": "QR indisponível — use o e-mail", "Waiting for your phone…": "Aguardando seu telefone…"});
@@ -188,6 +212,9 @@ function t(s){
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
 html,body{margin:0;padding:0;width:100%;height:100%;background:#0c0b11;color:#fff;font-family:'Inter',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased;user-select:none;}
 img{border:0}
+#tn{position:fixed;top:0;left:0;right:0;height:90px;z-index:30;background:linear-gradient(rgba(12,11,17,.95),rgba(12,11,17,0));transition:opacity .3s;display:flex;align-items:center;padding:0 30px}
+.tn-logo{height:36px;margin-right:40px;content:url(/stremio-logo.png)}
+.tn-chip{font-size:32px;font-weight:600;color:rgba(255,255,255,.6);margin-right:32px;border-bottom:3px solid transparent}
 
 /* two-layer backdrop: incoming art fades IN over the old one = true crossfade, no pop.
    Art lives in the TOP half; a strong gradient + corner vignette melts it to black below. */
@@ -246,11 +273,11 @@ body.trailer #dWrap{opacity:.14}
 .rowtitle{font-size:30px;font-weight:700;margin:0 0 14px 4px;color:rgba(255,255,255,.95)}
 .cards{white-space:nowrap}
 .cards.snap{transition:none}
-.card{display:inline-block;vertical-align:top;position:relative;width:220px;height:330px;margin-right:20px;border-radius:10px;background:#1b1927;overflow:hidden;transition:transform 0.2s ease, box-shadow 0.2s ease;will-change:transform}
+.card{display:inline-block;vertical-align:top;position:relative;width:220px;height:330px;margin-right:20px;border-radius:10px;background:#1b1927;overflow:hidden;transition:transform .13s ease;will-change:transform}
 .card img{width:100%;height:100%;border-radius:14px}
 .card .nm{position:absolute;top:0;left:0;right:0;bottom:0;padding:16px;font-size:28px;line-height:1.3;white-space:normal;color:rgba(255,255,255,.9)}
 .titlelabel{position:absolute;left:0;right:0;bottom:0;padding:34px 15px 13px;font-size:25px;font-weight:600;background:linear-gradient(transparent,rgba(0,0,0,.92));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.card.f{box-shadow:0 0 0 5px #c9b8ff, 0 12px 30px rgba(0,0,0,0.6) !important;z-index:6;transform:scale(1.05)}
+.card.f{box-shadow:0 0 0 5px #fff !important;z-index:6;transform:translateY(-8px)}
 .card.wide{width:430px;height:242px}
 .pbar{position:absolute;left:0;right:0;bottom:0;height:9px;background:rgba(255,255,255,.25)}
 .pbar div{height:100%;background:#8c5cff}
@@ -1708,6 +1735,9 @@ function boot(){
   setTimeout(function(){pullLib(function(){invalidateBoards();if(SCR==='home'||SCR==='lib')refreshCurBoard();});},700);
   setTimeout(function(){syncAddons(function(changed){if(changed){toast(t('Addons updated'));buildHomeRows(true);}});},900);
   if(localStorage.getItem('enableAnimations')==='"false"') document.body.classList.add('no-anim');
+  if(c('chipHome')) c('chipHome').textContent = t('Board');
+  if(c('chipDisc')) c('chipDisc').textContent = t('Discover');
+  if(c('chipLib')) c('chipLib').textContent = t('My Library');
 }
 var startupParamsHandled = false;
 function handleLaunchParams() {
