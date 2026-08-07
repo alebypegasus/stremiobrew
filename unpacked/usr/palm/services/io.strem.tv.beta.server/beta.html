@@ -13,6 +13,7 @@ var dict = {
     "Left / Right to change · settings apply to the player instantly": "Esquerda / Direita para alterar · aplica-se imediatamente",
     "Sign in with your phone": "Acesse pelo celular", "Scan the code with your camera": "Escaneie o código com a câmera",
     "Generating code…": "Gerando código...", "Or use email": "Ou use o e-mail", "Sign in": "Entrar",
+    "Pin to TV": "Fixar na TV", "Pinned to TV!": "Fixado na TV!",
     "Streams": "Fontes", "UI Language": "Idioma do Sistema", "Language": "Idioma", "Subtitles": "Legendas",
     "Signed in": "Conectado", "Free account": "Conta Gratuita", "Premium until ": "Premium até ",
     "Subtitle size": "Tamanho da legenda", "Default subtitles": "Legendas padrão", "White": "Branco",
@@ -43,10 +44,11 @@ var dict = {
     "Board": "Inicio", "Discover": "Descubrir", "My Library": "Mi Biblioteca", "Settings": "Ajustes", "Search": "Buscar",
     "Movies": "Películas", "Series": "Series", "Search movies & series": "Buscar películas y series",
     "Press OK to type, Down for results": "Presione OK para escribir, Abajo para resultados",
-    "Email": "Correo", "Password": "Contraseña",
-    "Left / Right to change · settings apply to the player instantly": "Izquierda / Derecha para cambiar · se aplica al instante",
+    "Email": "Correo", "Password": "Clave",
+    "Left / Right to change · settings apply to the player instantly": "Izquierda / Derecha para cambiar · los ajustes se aplican al instante",
     "Sign in with your phone": "Inicia sesión con tu teléfono", "Scan the code with your camera": "Escanea el código con tu cámara",
     "Generating code…": "Generando código...", "Or use email": "O usa el correo", "Sign in": "Iniciar sesión",
+    "Pin to TV": "Fijar en TV", "Pinned to TV!": "¡Fijado en TV!",
     "Streams": "Fuentes", "UI Language": "Idioma del Sistema", "Language": "Idioma", "Subtitles": "Subtítulos",
     "Signed in": "Conectado", "Free account": "Cuenta Gratis", "Premium until ": "Premium hasta ",
     "Subtitle size": "Tamaño de subtítulos", "Default subtítulos": "Subtítulos por defecto", "White": "Blanco",
@@ -86,7 +88,7 @@ var dict = {
     "Subtitle size": "Taille des sous-titres", "Default subtitles": "Sous-titres par défaut", "White": "Blanc",
     "Yellow": "Jaune", "Cyan": "Cyan", "Subtitle colour": "Couleur du sous-titre", "Black": "Noir",
     "Subtitle outline": "Contour du sous-titre", "None": "Aucun", "Solid": "Solide", "Transparent": "Transparent",
-    "Subtitle background": "Fond du sous-titre", "Extract (recommended)": "Extraire (recommandé)", "TV native": "Natif TV",
+    "Subtitle background": "Fond du sous-titre", "Extract (recommandé)": "Extraire (recommandé)", "TV native": "Natif TV",
     "Embedded subtitles engine": "Moteur de sous-titres", "Audio": "Audio", "Auto audio track": "Piste audio auto",
     "On": "Activé", "Off": "Désactivé", "Default audio language": "Langue audio par défaut", "Playback": "Lecture",
     "Seek step": "Pas de recherche", "Auto-play next episode": "Épisode suivant automatique", "Background trailers": "Bandes-annonces en arrière-plan",
@@ -104,7 +106,7 @@ var dict = {
     "Your library is empty.<br>Hold OK on any title (or use + Library) to add it here.": "Votre bibliothèque est vide.<br>Maintenez OK sur n'importe quel titre pour l'ajouter.",
     "Finding similar titles…": "Recherche de titres similaires...", "Nothing found.": "Rien trouvé.", "Specials": "Spéciaux",
     "Season ": "Saison ", "Episode ": "Épisode ", "Searching streams…": "Recherche de flux...", "No streams found.": "Aucun flux trouvé.",
-    "No streams from this provider yet…": "Aucun flux de ce fournisseur pour l'instant...", "Searching…": "Recherche...",
+    "No streams from this fournisseur yet…": "Aucun flux de ce fournisseur pour l'instant...", "Searching…": "Recherche...",
     "No results for “": "Aucun résultat pour “", "Enter email and password": "Entrez l'e-mail et le mot de passe", "Sign-in failed": "Échec de la connexion",
     "Signed in! Loading…": "Connecté ! Chargement...", "All": "Tous", "Cast": "Distribution", "Director": "Réalisateur", "Writers": "Scénaristes",
     "Country": "Pays", "Awards": "Récompenses"
@@ -117,6 +119,7 @@ var dict = {
     "Left / Right to change · settings apply to the player instantly": "Links / Rechts zum Ändern · gilt sofort",
     "Sign in with your phone": "Mit dem Telefon anmelden", "Scan the code with your camera": "Code mit der Kamera scannen",
     "Generating code…": "Code wird generiert...", "Or use email": "Oder E-Mail verwenden", "Sign in": "Anmelden",
+    "Pin to TV": "An TV anheften", "Pinned to TV!": "An TV angeheftet!",
     "Streams": "Quellen", "UI Language": "Systemsprache", "Language": "Sprache", "Subtitles": "Untertitel",
     "Signed in": "Angemeldet", "Free account": "Kostenloses Konto", "Premium until ": "Premium bis ",
     "Subtitle size": "Untertitelgröße", "Default subtitles": "Standard-Untertitel", "White": "Weiß",
@@ -1113,6 +1116,7 @@ render:function(){
   if(hasTr)this.addBtn(t('Trailer'),function(){self.playTrailer();});
   this.addBtn(t('Similar'),function(){goScr('sim',{type:self.type,id:self.id,name:m.name});});
   this.addBtn(this.inLib()?t('In Library'):t('+ Library'),function(){self.toggleLib();});
+  this.addBtn(t('Pin to TV'),function(){self.pinToTV();});
   this.paint();
   if(this.type==='series'){
     var lib=lsJson(PRE+this.id);
@@ -1145,6 +1149,12 @@ playTrailer:function(){
   var t=trailerIdOf(this.meta);
   if(!t){toast(window.t('No trailer available'));return;}
   ytPlay(t,'beta#detail/'+this.type+'/'+this.id);
+},
+pinToTV:function(){
+  var m=this.meta||{};
+  var payload={id:"io.strem.tv.beta",title:m.name||"",icon:"icon.png",params:{type:this.type,id:this.id}};
+  if(window.bridge) bridge.call('luna://com.webos.service.applicationmanager/addLaunchPoint', JSON.stringify(payload));
+  toast(t('Pinned to TV!'));
 },
 buildSeasons:function(){
   var vids=(this.meta&&this.meta.videos)||[];var bySeason={},order=[];
@@ -1698,10 +1708,22 @@ function boot(){
   setTimeout(function(){pullLib(function(){invalidateBoards();if(SCR==='home'||SCR==='lib')refreshCurBoard();});},700);
   setTimeout(function(){syncAddons(function(changed){if(changed){toast(t('Addons updated'));buildHomeRows(true);}});},900);
   if(localStorage.getItem('enableAnimations')==='"false"') document.body.classList.add('no-anim');
-  if(c('chipHome')) c('chipHome').textContent = t('Board');
-  if(c('chipDisc')) c('chipDisc').textContent = t('Discover');
-  if(c('chipLib')) c('chipLib').textContent = t('My Library');
 }
+var startupParamsHandled = false;
+function handleLaunchParams() {
+  if (startupParamsHandled) return;
+  var params = null;
+  if (window.PalmSystem && window.PalmSystem.launchParams) {
+    try { params = JSON.parse(window.PalmSystem.launchParams); } catch (e) {}
+  }
+  if (params && params.id) {
+    startupParamsHandled = true;
+    goScr('detail', params);
+  }
+}
+document.addEventListener("webOSLaunch", handleLaunchParams, true);
+setTimeout(handleLaunchParams, 500);
+
 if(document.readyState!=='loading')boot();
 else document.addEventListener('DOMContentLoaded',boot);
 })();
