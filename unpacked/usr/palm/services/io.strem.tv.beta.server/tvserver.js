@@ -1396,11 +1396,20 @@ http.createServer(function (req, res) {
   } else if (p === '/' || p === '/index.html') {
     waitForServer(function () { serveShell(res); });
   } else if (p === '/splash.jpg') {
-    fs.readFile(path.join(DIR, '../../applications/io.strem.tv.beta/splash.jpg'), function (err, buf) {
-      if (err) { res.writeHead(404); res.end(); return; }
-      res.writeHead(200, { 'Content-Type': 'image/jpeg' });
-      res.end(buf);
-    });
+    var pths = [
+      path.join(DIR, '../../applications/io.strem.tv.beta/splash.jpg'),
+      '/media/developer/apps/usr/palm/applications/io.strem.tv.beta/splash.jpg',
+      '/media/cryptofs/apps/usr/palm/applications/io.strem.tv.beta/splash.jpg',
+      '/usr/palm/applications/io.strem.tv.beta/splash.jpg'
+    ];
+    function tryPaths(idx) {
+      if (idx >= pths.length) { res.writeHead(404); res.end('not found in any path'); return; }
+      fs.readFile(pths[idx], function(err, buf) {
+        if (!err) { res.writeHead(200, { 'Content-Type': 'image/jpeg' }); res.end(buf); }
+        else { tryPaths(idx + 1); }
+      });
+    }
+    tryPaths(0);
   } else if (p === '/beta') {
     // The custom Netflix-like shell — a real file on disk (never strings-in-strings again).
     // Read per-request: tiny file, always fresh after an scp, no restart needed.
