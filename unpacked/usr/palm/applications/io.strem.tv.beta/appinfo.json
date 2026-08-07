@@ -1,6 +1,6 @@
 {
   "id": "io.strem.tv.beta",
-  "version": "1.6.0",
+  "version": "1.5.0",
   "vendor": "Stremio TV",
   "type": "web",
   "main": "index.html",
