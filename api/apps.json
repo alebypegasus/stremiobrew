@@ -19,7 +19,7 @@
         "sourceUrl": "https://github.com/alebypegasus/stremiobrew",
         "rootRequired": true,
         "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_1.6.0_all.ipk",
-        "ipkHash": { "sha256": "50b6e9c782a93df4fa06408da9c38cd06eccea8a0d923c757d59718de6ecd833" }
+        "ipkHash": { "sha256": "d653d73f881bbbc9059e68c93f7e87ce4258f45aa2c63c3884510df81390c247" }
       }
     }
   ]
