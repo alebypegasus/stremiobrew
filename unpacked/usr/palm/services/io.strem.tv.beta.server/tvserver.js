@@ -493,15 +493,26 @@ function cleanTitle(stream) {
 function playerPage(stream, ctx) {
   var streamUrl = stream.url || '';
   ctx = ctx || {};
+  var uiL = (ctx.l || 'en').replace(/"/g, '').split('-')[0];
   var meta = ctx.meta || {};
   var title = meta.name || cleanTitle(stream);
   var seLine = (ctx.season && ctx.episode) ? ('Season ' + ctx.season + ' · Episode ' + ctx.episode + (ctx.epTitle ? '  ·  ' + ctx.epTitle : '')) : '';
+  
+  var dict = {
+    'pt': { 'Could not read stream.': 'Não foi possível carregar a fonte.', 'Back': 'Voltar', 'Paused': 'Pausado', 'Next episode': 'Próximo episódio', 'Play next': 'Assistir próximo', 'Press Up to select': 'Pressione Cima para selecionar', 'Settings': 'Ajustes', 'Audio': 'Áudio', 'Subtitles': 'Legendas', 'Off': 'Desligado', 'Embedded': 'Embutidas', 'External': 'Externas', 'Style': 'Estilo', 'Delay': 'Atraso', 'Text bigger': 'Texto maior', 'Text smaller': 'Texto menor', 'Colour': 'Cor', 'Yellow': 'Amarelo', 'White': 'Branco', 'Background': 'Fundo', 'On': 'Ligado', 'Later (+0.5s)': 'Atrasar (+0.5s)', 'Earlier (-0.5s)': 'Adiantar (-0.5s)', 'Reset': 'Restaurar', 'Resuming from ': 'Continuando de ', 'Subtitles ready': 'Legendas prontas', 'Subtitles loaded': 'Legendas carregadas', 'Subtitle extraction failed': 'Falha ao extrair legenda', 'Native subtitles on': 'Legendas nativas ativadas', 'No native track — extracting…': 'Sem legenda nativa — extraindo…', 'Preparing subtitles…': 'Preparando legendas…', 'No embedded subtitles': 'Nenhuma legenda embutida', 'Language': 'Idioma', 'None in this file': 'Nenhuma neste arquivo', 'Reading tracks…': 'Lendo trilhas...', 'None found': 'Nenhuma encontrada' },
+    'es': { 'Could not read stream.': 'No se pudo cargar la fuente.', 'Back': 'Volver', 'Paused': 'Pausado', 'Next episode': 'Próximo episodio', 'Play next': 'Reproducir siguiente', 'Press Up to select': 'Presiona Arriba para seleccionar', 'Settings': 'Ajustes', 'Audio': 'Audio', 'Subtitles': 'Subtítulos', 'Off': 'Desactivado', 'Embedded': 'Incrustados', 'External': 'Externos', 'Style': 'Estilo', 'Delay': 'Retraso', 'Text bigger': 'Texto mayor', 'Text smaller': 'Texto menor', 'Colour': 'Color', 'Yellow': 'Amarillo', 'White': 'Blanco', 'Background': 'Fondo', 'On': 'Activado', 'Later (+0.5s)': 'Retrasar (+0.5s)', 'Earlier (-0.5s)': 'Adelantar (-0.5s)', 'Reset': 'Restaurar', 'Resuming from ': 'Continuando desde ', 'Subtitles ready': 'Subtítulos listos', 'Subtitles loaded': 'Subtítulos cargados', 'Subtitle extraction failed': 'Error al extraer subtítulos', 'Native subtitles on': 'Subtítulos nativos activados', 'No native track — extracting…': 'Sin subtítulo nativo — extrayendo…', 'Preparing subtitles…': 'Preparando subtítulos…', 'No embedded subtitles': 'Sin subtítulos incrustados', 'Language': 'Idioma', 'None in this file': 'Ninguno en este archivo', 'Reading tracks…': 'Leyendo pistas...', 'None found': 'No se encontraron' },
+    'fr': { 'Could not read stream.': 'Impossible de charger la source.', 'Back': 'Retour', 'Paused': 'En pause', 'Next episode': 'Épisode suivant', 'Play next': 'Lire le suivant', 'Press Up to select': 'Appuyez en haut pour sélectionner', 'Settings': 'Paramètres', 'Audio': 'Audio', 'Subtitles': 'Sous-titres', 'Off': 'Désactivé', 'Embedded': 'Intégrés', 'External': 'Externes', 'Style': 'Style', 'Delay': 'Délai', 'Text bigger': 'Texte plus grand', 'Text smaller': 'Texte plus petit', 'Colour': 'Couleur', 'Yellow': 'Jaune', 'White': 'Blanc', 'Background': 'Fond', 'On': 'Activé', 'Later (+0.5s)': 'Retarder (+0.5s)', 'Earlier (-0.5s)': 'Avancer (-0.5s)', 'Reset': 'Réinitialiser', 'Resuming from ': 'Reprise à ', 'Subtitles ready': 'Sous-titres prêts', 'Subtitles loaded': 'Sous-titres chargés', 'Subtitle extraction failed': 'Échec de l\'extraction des sous-titres', 'Native subtitles on': 'Sous-titres natifs activés', 'No native track — extracting…': 'Aucune piste native — extraction…', 'Preparing subtitles…': 'Préparation des sous-titres…', 'No embedded subtitles': 'Aucun sous-titre intégré', 'Language': 'Langue', 'None in this file': 'Aucun dans ce fichier', 'Reading tracks…': 'Lecture des pistes...', 'None found': 'Aucun trouvé' },
+    'de': { 'Could not read stream.': 'Quelle konnte nicht geladen werden.', 'Back': 'Zurück', 'Paused': 'Pausiert', 'Next episode': 'Nächste Folge', 'Play next': 'Nächste abspielen', 'Press Up to select': 'Nach oben drücken zur Auswahl', 'Settings': 'Einstellungen', 'Audio': 'Audio', 'Subtitles': 'Untertitel', 'Off': 'Aus', 'Embedded': 'Eingebettet', 'External': 'Extern', 'Style': 'Stil', 'Delay': 'Verzögerung', 'Text bigger': 'Text größer', 'Text smaller': 'Text kleiner', 'Colour': 'Farbe', 'Yellow': 'Gelb', 'White': 'Weiß', 'Background': 'Hintergrund', 'On': 'An', 'Later (+0.5s)': 'Später (+0.5s)', 'Earlier (-0.5s)': 'Früher (-0.5s)', 'Reset': 'Zurücksetzen', 'Resuming from ': 'Fortsetzen ab ', 'Subtitles ready': 'Untertitel bereit', 'Subtitles loaded': 'Untertitel geladen', 'Subtitle extraction failed': 'Untertitelextraktion fehlgeschlagen', 'Native subtitles on': 'Native Untertitel an', 'No native track — extracting…': 'Kein nativer Track — extrahiere…', 'Preparing subtitles…': 'Bereite Untertitel vor…', 'No embedded subtitles': 'Keine eingebetteten Untertitel', 'Language': 'Sprache', 'None in this file': 'Keine in dieser Datei', 'Reading tracks…': 'Lese Tracks...', 'None found': 'Keine gefunden' }
+  };
+  function t(s) { return (dict[uiL] && dict[uiL][s]) || s; }
+
   var nextVid = ctx.nextVid || '';
   // "Next episode" returns to whichever UI launched us: beta detail page or the v4 route.
   var fromBeta = (ctx.back || '').indexOf('beta') === 0;
   var nextHref = !nextVid ? '' : (fromBeta
-    ? 'http://127.0.0.1:8080/beta#detail/' + encodeURIComponent(ctx.type || '') + '/' + encodeURIComponent(ctx.id || '') + '/' + encodeURIComponent(nextVid)
+    ? 'http://127.0.0.1:8080/beta#autonext/' + encodeURIComponent(ctx.type || '') + '/' + encodeURIComponent(ctx.id || '') + '/' + encodeURIComponent(nextVid)
     : 'http://127.0.0.1:8080/#/detail/' + encodeURIComponent(ctx.type || '') + '/' + encodeURIComponent(ctx.id || '') + '/' + encodeURIComponent(nextVid));
+
   // Browser script below targets Chromium 53 (ES5 only).
   return '<!doctype html><html><head><meta charset="utf-8">' +
 '<meta name="viewport" content="width=device-width,initial-scale=1">' +
@@ -583,11 +594,11 @@ function playerPage(stream, ctx) {
 '<div id="seekind"></div>' +
 '<div id="toast"></div>' +
 '<div id="load"><div class="lwrap"><div id="lname"></div></div></div>' +
-'<div id="pv"><div id="pvBox"><div id="pvLbl">Paused</div><div id="pvTitle"></div><div id="pvSe"></div><div id="pvBadges"></div></div></div>' +
-'<div id="np"><div id="npL">Next episode</div><div id="npT"></div><img id="npI"><div id="npB">Play next</div><div id="npH">Press Up to select</div></div>' +
+'<div id="pv"><div id="pvBox"><div id="pvLbl">'+t('Paused')+'</div><div id="pvTitle"></div><div id="pvSe"></div><div id="pvBadges"></div></div></div>' +
+'<div id="np"><div id="npL">'+t('Next episode')+'</div><div id="npT"></div><img id="npI"><div id="npB">'+t('Play next')+'</div><div id="npH">'+t('Press Up to select')+'</div></div>' +
 '<div id="spv"><img id="spvi"><div id="spvT"></div></div>' +
 '<div id="bar"><div id="title"></div><div id="tse"></div><div id="seekrow"><div id="seek"><div id="fill"></div><div id="knob"></div></div><div id="time">0:00 / 0:00</div></div>' +
-'<div id="row"><div id="ctr"><div class="pbtn" id="b_rw"><svg viewBox="0 0 24 24" width="42" height="42"><path d="M12 6v12l-9-6 9-6zM22 6v12l-9-6 9-6z"/></svg></div><div class="pbtn big" id="b_pp"><i class=ic-pause></i></div><div class="pbtn" id="b_ff"><svg viewBox="0 0 24 24" width="42" height="42"><path d="M2 6l9 6-9 6V6zM12 6l9 6-9 6V6z"/></svg></div></div><div id="rgt"><div class="pbtn wide" id="b_next" style="display:none">Next episode</div><div class="pbtn" id="b_set"><svg viewBox="0 0 24 24" width="42" height="42"><path d="M19.14 12.94a7.5 7.5 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.3 7.3 0 00-1.62-.94l-.36-2.54A.5.5 0 0013.5 2h-3a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.7 8.84a.5.5 0 00.12.64l2.03 1.58a7.5 7.5 0 000 1.88L2.82 14.5a.5.5 0 00-.12.64l1.92 3.32a.5.5 0 00.61.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54a.5.5 0 00.5.42h3a.5.5 0 00.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96a.5.5 0 00.61-.22l1.92-3.32a.5.5 0 00-.12-.64zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg></div></div></div></div>' +
+'<div id="row"><div id="ctr"><div class="pbtn" id="b_rw"><svg viewBox="0 0 24 24" width="42" height="42"><path d="M12 6v12l-9-6 9-6zM22 6v12l-9-6 9-6z"/></svg></div><div class="pbtn big" id="b_pp"><i class=ic-pause></i></div><div class="pbtn" id="b_ff"><svg viewBox="0 0 24 24" width="42" height="42"><path d="M2 6l9 6-9 6V6zM12 6l9 6-9 6V6z"/></svg></div></div><div id="rgt"><div class="pbtn wide" id="b_next" style="display:none">'+t('Next episode')+'</div><div class="pbtn" id="b_set"><svg viewBox="0 0 24 24" width="42" height="42"><path d="M19.14 12.94a7.5 7.5 0 000-1.88l2.03-1.58a.5.5 0 00.12-.64l-1.92-3.32a.5.5 0 00-.61-.22l-2.39.96a7.3 7.3 0 00-1.62-.94l-.36-2.54A.5.5 0 0013.5 2h-3a.5.5 0 00-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 00-.61.22L2.7 8.84a.5.5 0 00.12.64l2.03 1.58a7.5 7.5 0 000 1.88L2.82 14.5a.5.5 0 00-.12.64l1.92 3.32a.5.5 0 00.61.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54a.5.5 0 00.5.42h3a.5.5 0 00.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96a.5.5 0 00.61-.22l1.92-3.32a.5.5 0 00-.12-.64zM12 15.5A3.5 3.5 0 1112 8.5a3.5 3.5 0 010 7z"/></svg></div></div></div></div>' +
 '<div id="menu"></div>' +
 '<script>(function(){' +
 'var URL=' + JSON.stringify(streamUrl) + ',TITLE=' + JSON.stringify(title) + ',TYPE=' + JSON.stringify(ctx.type || '') + ',ID=' + JSON.stringify(ctx.id || '') + ',VID=' + JSON.stringify(ctx.vid || '') + ',LOGO=' + JSON.stringify(meta.logo || '') + ',BG=' + JSON.stringify(meta.background || '') + ',POSTER=' + JSON.stringify(meta.poster || '') + ',SE=' + JSON.stringify(seLine) + ',NEXTVID=' + JSON.stringify(nextVid) + ',NEXTHREF=' + JSON.stringify(nextHref) + ',BACK=' + JSON.stringify(ctx.back || '') + ',NEXTTITLE=' + JSON.stringify(ctx.nextTitle || '') + ',NEXTTHUMB=' + JSON.stringify(ctx.nextThumb || '') + ',SNAME=' + JSON.stringify(String((stream.name || '') + ' ' + (stream.title || stream.description || '')).slice(0, 400)) + ',CERT=' + JSON.stringify((ctx.meta && ctx.meta.cert) || '') + ';' +
@@ -624,13 +635,13 @@ function playerPage(stream, ctx) {
 // Stremio auto-watch semantics: removed:false + temp:true (shows in Library + Continue
 // Watching and syncs everywhere). An explicit + Library later flips temp:false.
 'function saveProgress(){if(!v.duration||!ID)return;var now=new Date().toISOString();var it=readLib();if(!it||!it.state){it={state:{},_id:ID,removed:false,temp:true,_ctime:now,name:TITLE,type:TYPE,poster:POSTER||"",posterShape:"poster",background:BG||"",logo:LOGO||"",year:""};}else{if(!it.name&&TITLE)it.name=TITLE;if(!it.poster&&POSTER)it.poster=POSTER;if(!it.type&&TYPE)it.type=TYPE;if(!it.posterShape)it.posterShape="poster";}var s=it.state;s.timeOffset=Math.round(v.currentTime*1000);s.duration=Math.round(v.duration*1000);s.video_id=VID||ID;s.lastWatched=now;s.timeWatched=s.timeOffset;if(s.overallTimeWatched==null)s.overallTimeWatched=s.timeOffset;if(s.timesWatched==null)s.timesWatched=0;if(s.flaggedWatched==null)s.flaggedWatched=0;if(s.season==null)s.season=0;if(s.episode==null)s.episode=0;if(!s.watchedEpisodes)s.watchedEpisodes=[];if(s.noNotif==null)s.noNotif=false;if(s.watched==null)s.watched="";it.state=s;it._mtime=now;if(it.removed==null)it.removed=false;if(it.temp==null)it.temp=true;try{localStorage.setItem(LIBKEY,JSON.stringify(it));}catch(e){}}' +
-'var didResume=false;function tryResume(){if(didResume)return;didResume=true;var it=readLib();if(it&&it.state&&it.state.video_id===(VID||ID)&&it.state.timeOffset>5000){var sec=it.state.timeOffset/1000;if(!it.state.duration||sec<it.state.duration/1000-30){try{v.currentTime=sec;showToast("Resuming from "+fmt(sec));}catch(e){}}}}' +
+'var didResume=false;function tryResume(){if(didResume)return;didResume=true;var it=readLib();if(it&&it.state&&it.state.video_id===(VID||ID)&&it.state.timeOffset>5000){var sec=it.state.timeOffset/1000;if(!it.state.duration||sec<it.state.duration/1000-30){try{v.currentTime=sec;showToast('+JSON.stringify(t('Resuming from '))+'+fmt(sec));}catch(e){}}}}' +
 'v.addEventListener("loadeddata",tryResume);v.addEventListener("canplay",tryResume);' +
 'setInterval(function(){if(!v.paused){saveProgress();pushLib(false);if(v.duration&&v.currentTime/v.duration>0.95)markWatchedLocal();}},10000);v.addEventListener("pause",function(){saveProgress();pushLib(true);});v.addEventListener("ended",function(){saveProgress();pushLib(true);});' +
 // local watched flag: add this video id to state.watchedEpisodes (drives the beta checkmarks)
 'function markWatchedLocal(){try{var it=readLib();if(!it||!it.state)return;var wv=VID||ID;if(!it.state.watchedEpisodes)it.state.watchedEpisodes=[];for(var i=0;i<it.state.watchedEpisodes.length;i++)if(it.state.watchedEpisodes[i]===wv)return;it.state.watchedEpisodes.push(wv);it.state.flaggedWatched=1;it._mtime=new Date().toISOString();localStorage.setItem(LIBKEY,JSON.stringify(it));pushLib(true);}catch(e){}}' +
 // binge: when the episode ends, jump straight to the next one (detail deep-link opens its streams)
-'v.addEventListener("ended",function(){markWatchedLocal();var binge=(lsGet("bingeWatch","true")!=="false")&&(lsGet("enableNextVideo","true")!=="false");if(binge&&NEXTHREF){showToast("Next episode\\u2026");setTimeout(function(){location.replace(NEXTHREF);},600);}});' +
+'v.addEventListener("ended",function(){markWatchedLocal();var binge=(lsGet("bingeWatch","true")!=="false")&&(lsGet("enableNextVideo","true")!=="false");if(binge&&NEXTHREF){showToast('+JSON.stringify(t('Next episode'))+');setTimeout(function(){location.replace(NEXTHREF);},600);}});' +
 // ---- external subtitles (English first) ----
 'var extSubs=[],cues=null,embTrack=null,subSize=38,subColor="#fff",subOutline="#000000",subBgOp=0,curSub="off",subDelay=0,subView="root",extLang="";' +
 // ---- pull the shell Settings (same-origin localStorage) so they drive OUR player ----
@@ -662,19 +673,19 @@ function playerPage(stream, ctx) {
 'if(want!==embN||!j)return;' +
 'if(j.gone){setEmbSub(embN);return;}' + // server restarted / job reaped -> re-kick
 'if(j.cues&&j.cues.length){if(!cues)cues=[];for(var i=0;i<j.cues.length;i++)cues.push(j.cues[i]);subEl._t=null;' +
-'if(!embFirst){embFirst=true;showToast("Subtitles ready");}}' +
-'if(j.err&&!cues.length){showToast("Subtitle extraction failed");}' +
+'if(!embFirst){embFirst=true;showToast('+JSON.stringify(t('Subtitles ready'))+');}}' +
+'if(j.err&&!cues.length){showToast('+JSON.stringify(t('Subtitle extraction failed'))+');}' +
 '});}' +
 // TRY NATIVE: the TV already decodes the MKV; ask its pipeline to render this text track
 // (mode="showing"). Far better than demuxing over the network if the TV exposes the tracks.
 'function setEmbSub(n,ti){curSub="emb:"+n;embTrack=null;embN=n;cues=[];embFirst=false;subEl.innerHTML="";' +
 // Settings: "native" tries the TV's own text track (usually empty on this TV -> falls back)
-'if(EMBMODE==="native"){var ok=false;try{for(var i=0;i<v.textTracks.length;i++)v.textTracks[i].mode="disabled";var tt=v.textTracks[ti||0];if(tt){tt.mode="showing";ok=true;}}catch(e){}if(ok){showToast("Native subtitles on");return;}showToast("No native track \\u2014 extracting\\u2026");}' +
+'if(EMBMODE==="native"){var ok=false;try{for(var i=0;i<v.textTracks.length;i++)v.textTracks[i].mode="disabled";var tt=v.textTracks[ti||0];if(tt){tt.mode="showing";ok=true;}}catch(e){}if(ok){showToast('+JSON.stringify(t('Native subtitles on'))+');return;}showToast('+JSON.stringify(t('No native track — extracting…'))+');}' +
 'xhr("/embstart?"+embQS()+"&t="+(v.currentTime|0),function(j){' +
 'if(embN!==n||!j)return;' +
-'if(j.cues&&j.cues.length){cues=j.cues;subEl._t=null;embFirst=true;showToast(j.cached?"Subtitles loaded":"Subtitles ready");}' +
-'else if(j.started){showToast("Preparing subtitles\\u2026");}' +
-'else if(j.err){showToast("No embedded subtitles");}' +
+'if(j.cues&&j.cues.length){cues=j.cues;subEl._t=null;embFirst=true;showToast(j.cached?'+JSON.stringify(t('Subtitles loaded'))+':'+JSON.stringify(t('Subtitles ready'))+');}' +
+'else if(j.started){showToast('+JSON.stringify(t('Preparing subtitles…'))+');}' +
+'else if(j.err){showToast('+JSON.stringify(t('No embedded subtitles'))+');}' +
 '});}' +
 'function subsOff(){curSub="off";embTrack=null;embN=-1;cues=null;subEl.innerHTML="";}' +
 'function subStyle(){var o=subOutline;var sh="text-shadow:-2px 0 "+o+",2px 0 "+o+",0 -2px "+o+",0 2px "+o+",-1px -1px "+o+",1px 1px "+o+",0 0 5px "+o+";";var bg=subBgOp>0?("background:rgba(0,0,0,"+subBgOp+");padding:2px 16px;border-radius:8px;"):"";return "font-size:"+subSize+"px;color:"+subColor+";"+sh+bg;}' +
@@ -732,14 +743,14 @@ function playerPage(stream, ctx) {
 'function onPop(){goBack();}window.addEventListener("popstate",onPop);' +
 // ---- menus (subtitles = Off + external English-first + embedded; audio = embedded) ----
 'function openMenu(view){subView=view;menuItems=[];var html="";' +
-'if(view==="root"){html+="<div class=mh>Settings</div>";html+="<div class=mi>Audio \\u203a</div>";menuItems.push({k:"go",to:"audio"});html+="<div class=mi>Subtitles \\u203a</div>";menuItems.push({k:"go",to:"subsroot"});}' +
-'else if(view==="audio"){html+="<div class=mh>Audio</div>";try{for(var a=0;a<v.audioTracks.length;a++){var at=v.audioTracks[a];html+="<div class=\\"mi"+(at.enabled?" on":"")+"\\">"+(at.label||at.language||("Audio "+(a+1)))+(at.enabled?"":"")+"</div>";menuItems.push({k:"aud",idx:a});}}catch(e){}if(!menuItems.length)html+="<div class=mi style=\\"opacity:.5\\">None</div>";}' +
-'else if(view==="subsroot"){html+="<div class=mh>Subtitles</div>";var f0=(curSub==="off");html+="<div class=\\"mi"+(f0?" on":"")+"\\">Off"+(f0?"":"")+"</div>";menuItems.push({k:"off"});html+="<div class=mi>Embedded \\u203a</div>";menuItems.push({k:"go",to:"embedded"});html+="<div class=mi>External \\u203a</div>";menuItems.push({k:"go",to:"external"});html+="<div class=mi>Style \\u203a</div>";menuItems.push({k:"go",to:"style"});if(curSub.indexOf("ext:")===0){html+="<div class=mi>Delay \\u203a</div>";menuItems.push({k:"go",to:"delay"});}}' +
-'else if(view==="embedded"){html+="<div class=mh>Embedded</div>";if(embTracksLoading||embTracks===null){html+="<div class=mi style=\\"opacity:.5\\">Reading tracks\\u2026</div>";if(!embReopenArmed){embReopenArmed=true;var iv=setInterval(function(){if(!embTracksLoading){clearInterval(iv);embReopenArmed=false;if(subView==="embedded")reopen();}},400);}}else if(embErr){html+="<div class=mi style=\\"opacity:.6;white-space:normal;font-size:22px\\">"+embErr+"</div>";}else if(!embTracks.length){html+="<div class=mi style=\\"opacity:.5\\">None in this file</div>";}else{for(var j=0;j<embTracks.length;j++){var et=embTracks[j];var fb=(curSub==="emb:"+et.n);html+="<div class=\\"mi"+(fb?" on":"")+"\\">"+et.name+(fb?"":"")+"</div>";menuItems.push({k:"emb",idx:et.n,ti:et.ti});}}}' +
-'else if(view==="external"){html+="<div class=mh>External \\u2014 language</div>";if(!extSubs.length)html+="<div class=mi style=\\"opacity:.5\\">None found</div>";var seen={};for(var i=0;i<extSubs.length;i++){var L=extSubs[i].lang;if(!seen[L]){seen[L]=1;html+="<div class=mi>"+extSubs[i].name+" \\u203a</div>";menuItems.push({k:"lang",lang:L});}}}' +
-'else if(view==="extlang"){var nm="";for(var i=0;i<extSubs.length;i++){if(extSubs[i].lang===extLang){nm=extSubs[i].name;break;}}html+="<div class=mh>"+nm+" subtitles</div>";var c=0;for(var i=0;i<extSubs.length;i++){if(extSubs[i].lang===extLang){c++;var fe=(curSub==="ext:"+extSubs[i].u);html+="<div class=\\"mi"+(fe?" on":"")+"\\">"+nm+" "+c+(fe?"":"")+"</div>";menuItems.push({k:"ext",u:extSubs[i].u});}}}' +
-'else if(view==="style"){html+="<div class=mh>Style</div>";html+="<div class=mi>Text bigger</div>";menuItems.push({k:"size+"});html+="<div class=mi>Text smaller</div>";menuItems.push({k:"size-"});html+="<div class=mi>Colour: "+(subColor.toLowerCase()==="#ffe600"?"Yellow":"White")+"</div>";menuItems.push({k:"color"});html+="<div class=mi>Background: "+(subBgOp>0?"On":"Off")+"</div>";menuItems.push({k:"bg"});}' +
-'else if(view==="delay"){html+="<div class=mh>Delay: "+(subDelay>0?"+":"")+subDelay.toFixed(1)+"s</div>";html+="<div class=mi>Later (+0.5s)</div>";menuItems.push({k:"d+"});html+="<div class=mi>Earlier (-0.5s)</div>";menuItems.push({k:"d-"});html+="<div class=mi>Reset</div>";menuItems.push({k:"d0"});}' +
+'if(view==="root"){html+="<div class=mh>"+'+JSON.stringify(t('Settings'))+'+"</div>";html+="<div class=mi>"+'+JSON.stringify(t('Audio'))+'+" \\u203a</div>";menuItems.push({k:"go",to:"audio"});html+="<div class=mi>"+'+JSON.stringify(t('Subtitles'))+'+" \\u203a</div>";menuItems.push({k:"go",to:"subsroot"});}' +
+'else if(view==="audio"){html+="<div class=mh>"+'+JSON.stringify(t('Audio'))+'+"</div>";try{for(var a=0;a<v.audioTracks.length;a++){var at=v.audioTracks[a];html+="<div class=\\"mi"+(at.enabled?" on":"")+"\\">"+(at.label||at.language||('+JSON.stringify(t('Audio'))+'+" "+(a+1)))+(at.enabled?"":"")+"</div>";menuItems.push({k:"aud",idx:a});}}catch(e){}if(!menuItems.length)html+="<div class=mi style=\\"opacity:.5\\">"+'+JSON.stringify(t('None found'))+'+"</div>";}' +
+'else if(view==="subsroot"){html+="<div class=mh>"+'+JSON.stringify(t('Subtitles'))+'+"</div>";var f0=(curSub==="off");html+="<div class=\\"mi"+(f0?" on":"")+"\\">"+'+JSON.stringify(t('Off'))+'+(f0?"":"")+"</div>";menuItems.push({k:"off"});html+="<div class=mi>"+'+JSON.stringify(t('Embedded'))+'+" \\u203a</div>";menuItems.push({k:"go",to:"embedded"});html+="<div class=mi>"+'+JSON.stringify(t('External'))+'+" \\u203a</div>";menuItems.push({k:"go",to:"external"});html+="<div class=mi>"+'+JSON.stringify(t('Style'))+'+" \\u203a</div>";menuItems.push({k:"go",to:"style"});if(curSub.indexOf("ext:")===0){html+="<div class=mi>"+'+JSON.stringify(t('Delay'))+'+" \\u203a</div>";menuItems.push({k:"go",to:"delay"});}}' +
+'else if(view==="embedded"){html+="<div class=mh>"+'+JSON.stringify(t('Embedded'))+'+"</div>";if(embTracksLoading||embTracks===null){html+="<div class=mi style=\\"opacity:.5\\">"+'+JSON.stringify(t('Reading tracks…'))+'+"</div>";if(!embReopenArmed){embReopenArmed=true;var iv=setInterval(function(){if(!embTracksLoading){clearInterval(iv);embReopenArmed=false;if(subView==="embedded")reopen();}},400);}}else if(embErr){html+="<div class=mi style=\\"opacity:.6;white-space:normal;font-size:22px\\">"+embErr+"</div>";}else if(!embTracks.length){html+="<div class=mi style=\\"opacity:.5\\">"+'+JSON.stringify(t('None in this file'))+'+"</div>";}else{for(var j=0;j<embTracks.length;j++){var et=embTracks[j];var fb=(curSub==="emb:"+et.n);html+="<div class=\\"mi"+(fb?" on":"")+"\\">"+et.name+(fb?"":"")+"</div>";menuItems.push({k:"emb",idx:et.n,ti:et.ti});}}}' +
+'else if(view==="external"){html+="<div class=mh>"+'+JSON.stringify(t('External'))+'+" \\u2014 "+'+JSON.stringify(t('Language'))+'+"</div>";if(!extSubs.length)html+="<div class=mi style=\\"opacity:.5\\">"+'+JSON.stringify(t('None found'))+'+"</div>";var seen={};for(var i=0;i<extSubs.length;i++){var L=extSubs[i].lang;if(!seen[L]){seen[L]=1;html+="<div class=mi>"+extSubs[i].name+" \\u203a</div>";menuItems.push({k:"lang",lang:L});}}}' +
+'else if(view==="extlang"){var nm="";for(var i=0;i<extSubs.length;i++){if(extSubs[i].lang===extLang){nm=extSubs[i].name;break;}}html+="<div class=mh>"+nm+" "+'+JSON.stringify(t('Subtitles'))+'+"</div>";var c=0;for(var i=0;i<extSubs.length;i++){if(extSubs[i].lang===extLang){c++;var fe=(curSub==="ext:"+extSubs[i].u);html+="<div class=\\"mi"+(fe?" on":"")+"\\">"+nm+" "+c+(fe?"":"")+"</div>";menuItems.push({k:"ext",u:extSubs[i].u});}}}' +
+'else if(view==="style"){html+="<div class=mh>"+'+JSON.stringify(t('Style'))+'+"</div>";html+="<div class=mi>"+'+JSON.stringify(t('Text bigger'))+'+"</div>";menuItems.push({k:"size+"});html+="<div class=mi>"+'+JSON.stringify(t('Text smaller'))+'+"</div>";menuItems.push({k:"size-"});html+="<div class=mi>"+'+JSON.stringify(t('Colour'))+': "+(subColor.toLowerCase()==="#ffe600"?'+JSON.stringify(t('Yellow'))+':'+JSON.stringify(t('White'))+')+"</div>";menuItems.push({k:"color"});html+="<div class=mi>"+'+JSON.stringify(t('Background'))+': "+(subBgOp>0?'+JSON.stringify(t('On'))+':'+JSON.stringify(t('Off'))+')+"</div>";menuItems.push({k:"bg"});}' +
+'else if(view==="delay"){html+="<div class=mh>"+'+JSON.stringify(t('Delay'))+': "+(subDelay>0?"+":"")+subDelay.toFixed(1)+"s</div>";html+="<div class=mi>"+'+JSON.stringify(t('Later (+0.5s)'))+'+"</div>";menuItems.push({k:"d+"});html+="<div class=mi>"+'+JSON.stringify(t('Earlier (-0.5s)'))+'+"</div>";menuItems.push({k:"d-"});html+="<div class=mi>"+'+JSON.stringify(t('Reset'))+'+"</div>";menuItems.push({k:"d0"});}' +
 'menu.innerHTML=html;menu.className="show";mode="menu";mIdx=0;paintMenu();}' +
 'function paintMenu(){var els=menu.querySelectorAll(".mi");for(var i=0;i<els.length;i++)els[i].className="mi"+(i===mIdx?" f":"");if(els[mIdx])els[mIdx].scrollIntoView(false);}' +
 'function reopen(){var keep=mIdx;openMenu(subView);mIdx=keep;paintMenu();}' +
@@ -1395,17 +1406,17 @@ http.createServer(function (req, res) {
     res.end('ok');
   } else if (p === '/' || p === '/index.html') {
     waitForServer(function () { serveShell(res); });
-  } else if (p === '/splash.jpg') {
+  } else if (p === '/background.png') {
     var pths = [
-      path.join(DIR, '../../applications/io.strem.tv.beta/splash.jpg'),
-      '/media/developer/apps/usr/palm/applications/io.strem.tv.beta/splash.jpg',
-      '/media/cryptofs/apps/usr/palm/applications/io.strem.tv.beta/splash.jpg',
-      '/usr/palm/applications/io.strem.tv.beta/splash.jpg'
+      path.join(DIR, '../../applications/io.strem.tv.beta/background.png'),
+      '/media/developer/apps/usr/palm/applications/io.strem.tv.beta/background.png',
+      '/media/cryptofs/apps/usr/palm/applications/io.strem.tv.beta/background.png',
+      '/usr/palm/applications/io.strem.tv.beta/background.png'
     ];
     function tryPaths(idx) {
       if (idx >= pths.length) { res.writeHead(404); res.end('not found in any path'); return; }
       fs.readFile(pths[idx], function(err, buf) {
-        if (!err) { res.writeHead(200, { 'Content-Type': 'image/jpeg' }); res.end(buf); }
+        if (!err) { res.writeHead(200, { 'Content-Type': 'image/png' }); res.end(buf); }
         else { tryPaths(idx + 1); }
       });
     }
@@ -1425,10 +1436,12 @@ http.createServer(function (req, res) {
     if (!stream && q.u) stream = { url: q.u }; // beta shell passes the stream URL directly
     if (!stream || !stream.url) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end('<body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;padding-top:40vh">Could not read stream. <a style="color:#8c5cff" href="http://127.0.0.1:8080/">Back</a></body>');
+      var eMsg = (q.l && q.l.indexOf('pt')===0) ? 'Não foi possível carregar a fonte.' : 'Could not read stream.';
+      var bMsg = (q.l && q.l.indexOf('pt')===0) ? 'Voltar' : 'Back';
+      res.end('<body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;padding-top:40vh">' + eMsg + ' <a style="color:#8c5cff" href="http://127.0.0.1:8080/">' + bMsg + '</a></body>');
       return;
     }
-    var ctx = { type: q.type || '', id: q.id || '', vid: q.vid || '', back: q.back || '', meta: null };
+    var ctx = { type: q.type || '', id: q.id || '', vid: q.vid || '', back: q.back || '', l: q.l || '', meta: null };
     function servePlayer() {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       res.end(playerPage(stream, ctx));
