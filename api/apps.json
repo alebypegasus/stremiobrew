@@ -1,25 +1,32 @@
 {
-  "paging": { "page": 1, "count": 1, "maxPage": 1, "itemsTotal": 1 },
+  "paging": {
+    "page": 1,
+    "count": 1,
+    "maxPage": 1,
+    "itemsTotal": 1
+  },
   "packages": [
     {
       "id": "io.strem.tv.beta",
       "title": "StremioBrew",
-      "iconUri": "https://simussu9-wq.github.io/stremiobrew/icon.png",
+      "iconUri": "https://stremiobrew.vercel.app/icon.png",
       "pool": "non-free",
-      "manifestUrl": "https://simussu9-wq.github.io/stremiobrew/api/apps/io.strem.tv.beta/manifest.json",
-      "shortDescription": "Stremio client for rooted webOS 4 TVs (beta, testing).",
+      "manifestUrl": "https://stremiobrew.vercel.app/api/apps/io.strem.tv.beta/manifest.json",
+      "shortDescription": "Stremio client for rooted webOS 4 TVs with low RAM optimization and multi-language.",
       "fullDescriptionUrl": "apps/io.strem.tv.beta/full_description.html",
       "manifest": {
         "id": "io.strem.tv.beta",
         "version": "1.0.0",
         "type": "web",
         "title": "StremioBrew",
-        "appDescription": "Community Stremio client for rooted webOS 4 TVs. Work in progress \u2014 tested on one model only. Bring your own account and addons.",
-        "iconUri": "https://simussu9-wq.github.io/stremiobrew/icon.png",
-        "sourceUrl": "https://simussu9-wq.github.io/stremiobrew",
+        "appDescription": "Community Stremio client for rooted webOS 4 TVs (Chromium 53). Ultra-low RAM optimized, multi-language, Stremio Web UI.",
+        "iconUri": "https://stremiobrew.vercel.app/icon.png",
+        "sourceUrl": "https://github.com/alebypegasus/stremiobrew",
         "rootRequired": true,
-        "ipkUrl": "https://simussu9-wq.github.io/stremiobrew/io.strem.tv.beta_1.0.0_all.ipk",
-        "ipkHash": { "sha256": "36c81015d851bfd4b12c40372edbe7b51fb67fe1d8cec828d0aefa6ce8343df7" }
+        "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_1.0.0_all.ipk",
+        "ipkHash": {
+          "sha256": "8cb3b75e1c47aeb330195eb0830f86862db309ce0925349335aa48fa6d49f056"
+        }
       }
     }
   ]

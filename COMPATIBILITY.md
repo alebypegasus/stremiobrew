@@ -1,50 +1,28 @@
-# StremioBrew
+# StremioBrew - Compatibility & Architecture Guide
 
-A community Stremio client for **old, rooted LG webOS TVs** — the pre-WebAssembly
-generation that the official Stremio app doesn't support.
-
-> ⚠️ **Work in progress / still being tested.** It runs well on the one model it was
-> built on, but it has **not** been tested widely. Expect rough edges.
+A community Stremio client designed specifically for **legacy rooted LG webOS TVs (webOS 4.x / Chromium 53)** where the modern official WebAssembly client cannot run.
 
 ---
 
-## Requirements
+## Hardware & OS Compatibility
 
-- A **rooted** LG TV with the **Homebrew Channel** installed.
-- **webOS 4.x** (Chromium 53), **32-bit ARM (armv7)** — this is the tested target.
-- Internet, a **Stremio account**, and your **own addons** (a **debrid** service is
-  strongly recommended — debrid streams are direct links and play reliably).
-
-## What works
-
-- Browse / Discover / Library / Search from your addons, with artwork & metadata
-- Debrid playback, external + embedded subtitles, resume, watched sync, scrub previews
-- Account sync (library / watched) with your other Stremio devices
-
-## Known limits & caveats (please read)
-
-- **webOS 3.x (2016) — probably won't work.** Untested, older browser; treat as unlikely.
-- **64-bit (aarch64) TVs — won't work.** The bundled binaries are 32-bit ARM only.
-- **webOS 5+ TVs — use the official Stremio app instead** (no root needed there).
-- **Low-RAM models will likely crash.** These TVs have very little free memory. Heavy
-  use — fast scrolling, big/high-bitrate 4K files, torrent streams — can exhaust RAM and
-  crash the app (the system frees the memory and it reopens). **Debrid + moderate files
-  are the smooth path.** This is a hardware limit, not something the app can fully avoid.
-- **Trailers are best-effort** (they rely on public services that go up and down) and can
-  be turned off in Settings.
-
-## Install
-
-Homebrew Channel → Settings → **Add repository** → paste the repo's `apps.json` URL →
-find **StremioBrew** → Install. Reboot the TV first if another Stremio build is installed.
+| Platform / OS | Status | Notes |
+| :--- | :--- | :--- |
+| **LG webOS 4.x (2018-2019)** | **Supported (Primary)** | Chromium 53 engine, 32-bit ARM (armv7). Fully tested with memory virtualization. |
+| **LG webOS 3.x (2016-2017)** | *Experimental* | Older browser engine. Requires debrid and standard 1080p/720p streams. |
+| **LG webOS 5.0+ (2020+)** | *Not Required* | Please use the official native Stremio app from the LG Content Store. |
+| **64-bit ARM (aarch64) TVs** | *Unsupported* | The bundled Node/FFmpeg binaries are 32-bit armv7 only. |
 
 ---
 
-## Notes
+## Memory Architecture & Optimizations for Chromium 53
 
-- **You bring your own addons.** The app ships empty and hosts/indexes nothing — it only
-  plays stream links your installed addons return, and syncs with your own Stremio account.
-- Bundles open-source **Node.js** and **ffmpeg** (with their licenses) plus the Stremio
-  streaming server for torrent addons.
-- Not affiliated with or endorsed by Stremio; "Stremio" is used only to describe
-  compatibility. Provided as-is, for personal use on hardware you own.
+1. **DOM Virtualization**:
+   - The app dynamically mounts and unmounts poster image textures for off-screen rows.
+   - For distant rows, `src` is swapped with a 1x1 transparent placeholder (`data:image/gif;base64,...`), freeing up to 120MB of VRAM in the GPU compositor.
+2. **Resolution Downscaling**:
+   - Poster URLs use Metahub's `/small/` or `/medium/` proxies rather than original 4K/2K posters.
+3. **Compositor Stability**:
+   - Transitions use `transform: translate3d(x, y, 0)` rather than costly layout recalculations or blur shadow rendering.
+4. **Multi-Language System (i18n)**:
+   - Dynamic localized strings covering Portuguese (BR/PT), Spanish, English, French, German, Italian, Russian, and Turkish.

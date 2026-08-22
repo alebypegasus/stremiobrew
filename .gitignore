@@ -1,0 +1,6 @@
+.DS_Store
+node_modules/
+*.log
+data.tar.gz
+control.tar.gz
+debian-binary
