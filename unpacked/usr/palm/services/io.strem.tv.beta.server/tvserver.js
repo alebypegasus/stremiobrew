@@ -50,7 +50,9 @@ function portUp(port, cb) {
   setTimeout(function () { f(false); }, 1000);
 }
 
+var streamingChild = null;
 function startStreamingServer() {
+  if (process.platform !== 'linux' || !fs.existsSync(LOADER) || !fs.existsSync(SERVER)) return;
   var env = Object.assign({}, process.env);
   env.HOME = env.HOME || '/home/root';
   env.USER = env.USER || 'root';
@@ -58,14 +60,37 @@ function startStreamingServer() {
   env.FFPROBE_BIN = path.join(DIR, 'bin', 'ffprobe');
   env.NO_CORS = '1';
   env.BT_MAX_PEERS = '40';
-  var child = spawn(LOADER, ['--library-path', LIB, NODE, '--max-old-space-size=80', SERVER], {
-    cwd: DIR, env: env, detached: true, stdio: 'ignore'
-  });
-  child.on('error', function () {});
-  child.unref();
+  try {
+    dbg('starting streaming server on :' + SERVER_PORT);
+    streamingChild = spawn(LOADER, ['--library-path', LIB, NODE, '--max-old-space-size=80', SERVER], {
+      cwd: DIR, env: env, detached: true, stdio: 'ignore'
+    });
+    streamingChild.on('error', function (e) { dbg('server.js error: ' + (e && e.message)); });
+    streamingChild.on('exit', function (c) { dbg('server.js exit: ' + c); streamingChild = null; });
+    streamingChild.unref();
+  } catch (e) { dbg('startStreamingServer threw: ' + e.message); }
 }
 
-portUp(SERVER_PORT, function (up) { if (!up && process.platform === 'linux' && fs.existsSync(LOADER)) startStreamingServer(); });
+function ensureStreamingServer(cb) {
+  portUp(SERVER_PORT, function (up) {
+    if (up) { if (cb) cb(true); return; }
+    startStreamingServer();
+    if (cb) {
+      var count = 0;
+      var check = function () {
+        portUp(SERVER_PORT, function (ready) {
+          if (ready) return cb(true);
+          count++;
+          if (count > 25) return cb(false);
+          setTimeout(check, 400);
+        });
+      };
+      setTimeout(check, 400);
+    }
+  });
+}
+
+ensureStreamingServer();
 
 // ---------- injected CSS / JS ----------
 var CSS = [
@@ -608,7 +633,8 @@ function playerPage(stream, ctx) {
 'document.addEventListener("click",function(){if(v.paused)doPlay();});' +
 'document.addEventListener("keydown",function(e){if(v.paused&&e.keyCode===13)doPlay();});' +
 'setTimeout(doPlay,100);' +
-'var loadTimer=setTimeout(function(){if(load.style.display!=="none"){var isTor=(URL.indexOf(":11470")>=0);var msg=isTor?("<div style=\\"font-size:24px;max-width:820px;margin:0 auto;line-height:1.45;background:rgba(20,18,30,0.92);padding:28px 36px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,0.8);\\"><div style=\\"font-size:30px;font-weight:800;margin-bottom:12px;color:#ffd27a;\\">\\u26a0\\ufe0f Servidor Torrent (:11470)</div>O motor torrent integrado roda nativamente na TV LG.<br>Para testes no navegador do computador, utilize links <b>Debrid (Torrentio RD+)</b> ou links diretos HTTPS.<br><br><a href=\\"#\\" onclick=\\"exit();return false;\\" style=\\"display:inline-block;padding:12px 30px;background:#7b5bf5;color:#fff;border-radius:10px;text-decoration:none;font-size:22px;font-weight:700;\\">\\u25c0 Voltar</a></div>"):("<div style=\\"font-size:24px;max-width:820px;margin:0 auto;line-height:1.45;background:rgba(20,18,30,0.92);padding:28px 36px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,0.8);\\"><div style=\\"font-size:30px;font-weight:800;margin-bottom:12px;color:#ffd27a;\\">\\u23f3 Carregando Stream...</div>Se a reprodução demorar, clique abaixo para forçar o início ou escolha outro link.<br><br><button onclick=\\"doPlay();hideLoad();\\" style=\\"display:inline-block;padding:12px 30px;background:#7b5bf5;color:#fff;border-radius:10px;border:none;font-size:22px;font-weight:700;cursor:pointer;margin-right:14px;\\">\\u25b6 Iniciar Vídeo</button><a href=\\"#\\" onclick=\\"exit();return false;\\" style=\\"display:inline-block;padding:12px 30px;background:rgba(255,255,255,0.15);color:#fff;border-radius:10px;text-decoration:none;font-size:22px;font-weight:700;\\">\\u25c0 Voltar</a></div>");lname.innerHTML=msg;}},3500);' +
+'var t1=setTimeout(function(){if(load.style.display!=="none"){if(URL.indexOf(":11470")>=0){showToast("Conectando a peers / Carregando torrent…");}else{showToast("Bufferizando vídeo…");}}},4500);' +
+'var t2=setTimeout(function(){if(load.style.display!=="none"){if(URL.indexOf(":11470")>=0){showToast("Aguardando peças do torrent… Se demorar, tente outro stream.");}else{showToast("Aguardando stream do servidor…");}}},14000);' +
 // ---- resume + Continue Watching (shared with the v4 shell via same-origin localStorage) ----
 // The shell keeps watch progress as lib_<first4 of user._id>_<id> items with state.timeOffset
 // (ms). We read it to resume and write it so Continue Watching updates after our bare player.
@@ -703,9 +729,9 @@ function playerPage(stream, ctx) {
 'function fmt(s){s=Math.max(0,s|0);var h=(s/3600)|0,m=((s%3600)/60)|0,x=s%60;function p(n){return(n<10?"0":"")+n;}return(h?h+":"+p(m):m)+":"+p(x);}' +
 'function showBar(){bar.className="show";if(hideT)clearTimeout(hideT);hideT=setTimeout(function(){if(mode==="video"){bar.className="";}},4000);}' +
 'function paintBtns(){for(var i=0;i<btns.length;i++)btns[i].className=btns[i]._base+(mode==="controls"&&i===bIdx?" f":"");}' +
-'function hideLoad(){if(loadTimer)clearTimeout(loadTimer);load.style.display="none";}' +
+'function hideLoad(){if(t1)clearTimeout(t1);if(t2)clearTimeout(t2);load.style.display="none";}' +
 'v.addEventListener("playing",hideLoad);v.addEventListener("loadeddata",function(){setTimeout(hideLoad,300);});' +
-'v.addEventListener("error",function(){var msg=(URL.indexOf(":11470")>=0)?"Servidor Torrent (:11470) não disponível. Na TV LG, o serviço é iniciado com o app. Para testes no navegador, utilize links Debrid (Torrentio RD+).":"Erro de reprodução — link indisponível ou codec não suportado.";lname.innerHTML="<div style=\\"font-size:26px;max-width:800px;margin:0 auto;line-height:1.4;background:rgba(20,18,30,0.88);padding:24px 32px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,0.7);\\">"+msg+"<br><a href=\\"#\\" onclick=\\"exit();return false;\\" style=\\"display:inline-block;margin-top:18px;padding:10px 26px;background:#7b5bf5;color:#fff;border-radius:8px;text-decoration:none;font-size:22px;font-weight:700;\\">Voltar</a></div>";});' +
+'v.addEventListener("error",function(){var isTor=(URL.indexOf(":11470")>=0);var msg=isTor?"Não foi possível reproduzir este torrent (sem peers/seeders suficientes ou formato não suportado pela TV). Tente outro link da lista.":"Erro de reprodução — link indisponível ou codec não suportado pela TV.";lname.innerHTML="<div style=\\"font-size:26px;max-width:820px;margin:0 auto;line-height:1.4;background:rgba(20,18,30,0.92);padding:26px 34px;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,0.8);\\"><div style=\\"font-size:28px;font-weight:800;margin-bottom:10px;color:#ffd27a;\\">\\u26a0\\ufe0f Falha na Reprodução</div>"+msg+"<br><a href=\\"#\\" onclick=\\"exit();return false;\\" style=\\"display:inline-block;margin-top:18px;padding:10px 26px;background:#7b5bf5;color:#fff;border-radius:8px;text-decoration:none;font-size:22px;font-weight:700;\\">Voltar</a></div>";});' +
 // buffering: dim the frozen frame and breathe the art (the same look as initial load)
 'var bufEl=document.getElementById("buf");' +
 'function showBuf(){if(load.style.display==="none"&&!v.paused){bufEl.style.display="-webkit-flex";bufEl.style.display="flex";}}' +
@@ -1426,8 +1452,11 @@ http.createServer(function (req, res) {
     if (!stream && q.u) stream = { url: q.u }; // beta shell passes the stream URL directly
     if (!stream || !stream.url) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end('<body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;padding-top:40vh">Could not read stream. <a style="color:#8c5cff" href="http://127.0.0.1:8080/">Back</a></body>');
+      res.end('<body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;padding-top:40vh">Could not read stream. <a style="color:#8c5cff" href="http://127.0.0.1:8080/beta">Back</a></body>');
       return;
+    }
+    if (stream.url.indexOf(':11470') >= 0) {
+      ensureStreamingServer();
     }
     var ctx = { type: q.type || '', id: q.id || '', vid: q.vid || '', back: q.back || '', meta: null };
     function servePlayer() {
