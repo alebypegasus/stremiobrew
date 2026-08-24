@@ -2858,6 +2858,25 @@ function goScr(name, params, noStack){
   else if (name === 'sim'){ showScr('sim'); similar.enter(params); }
 }
 
+var _exitToastTimer = null;
+var _exitArmed = false;
+function confirmAppExit(){
+  if (_exitArmed){
+    try { window.close(); } catch(e){}
+    try {
+      if (window.PalmServiceBridge){
+        var bridge = new PalmServiceBridge();
+        bridge.call('luna://com.webos.applicationManager/closeByAppId', JSON.stringify({ id: 'io.strem.tv.beta' }));
+      }
+    } catch(e){}
+    return;
+  }
+  _exitArmed = true;
+  toast(t('Press Back again to exit') || 'Pressione Voltar novamente para sair');
+  if (_exitToastTimer) clearTimeout(_exitToastTimer);
+  _exitToastTimer = setTimeout(function(){ _exitArmed = false; }, 3000);
+}
+
 function goBackScr(){
   if (window._trailerOpen){ closeTrailer(); return; }
   if (SCR === 'login'){ try { window.close(); } catch(e){} return; }
@@ -2866,13 +2885,13 @@ function goBackScr(){
   if (SCR === 'detail' && detail.zone === 'eps'){ detail.zone = 'seasons'; detail.paint(); return; }
   if (topNav.active){
     if (SCR !== 'home'){ topNav.idx = 1; goScr('home', null, true); topNav.active = false; }
-    else { try { window.close(); } catch(e){} }
+    else { confirmAppExit(); }
     return;
   }
   var prev = backStack.pop();
   if (prev){ goScr(prev, null, true); return; }
   if (SCR !== 'home'){ topNav.idx = 1; goScr('home', null, true); return; }
-  try { window.close(); } catch(e){}
+  confirmAppExit();
 }
 
 function curBoard(){
@@ -4115,8 +4134,20 @@ document.addEventListener('keydown', function(e){
     closeTrailer();
     return;
   }
-  if (a === $('sBox') || a === $('lgEmail') || a === $('lgPass')) return;
-  if (k === 461 || k === 8 || k === 27){ e.preventDefault(); e.stopPropagation(); history.back(); return; }
+  if (a === $('sBox') || a === $('lgEmail') || a === $('lgPass')){
+    if (k === 461 || k === 27 || k === 8){
+      e.preventDefault(); e.stopPropagation();
+      a.blur();
+      return;
+    }
+    return;
+  }
+  if (k === 461 || k === 8 || k === 27){
+    e.preventDefault();
+    e.stopPropagation();
+    goBackScr();
+    return;
+  }
   if (k !== 37 && k !== 38 && k !== 39 && k !== 40 && k !== 13) return;
   e.preventDefault();
 
@@ -4161,9 +4192,8 @@ document.addEventListener('keyup', function(e){
   }
 }, true);
 
-try { history.pushState({ tv: 1 }, ''); } catch(e){}
-window.addEventListener('popstate', function(){
-  try { history.pushState({ tv: 1 }, ''); } catch(e){}
+window.addEventListener('popstate', function(e){
+  try { if (e && e.preventDefault) e.preventDefault(); } catch(err){}
   goBackScr();
 });
 

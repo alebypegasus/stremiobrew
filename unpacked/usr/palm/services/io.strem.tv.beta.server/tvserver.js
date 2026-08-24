@@ -753,24 +753,11 @@ function playerPage(stream, ctx) {
 'function commitSeek(){if(seekTarget<0)return;var tgt=seekTarget;seekTarget=-1;seekTimer=null;seekBar.className="";v.currentTime=tgt;showBuf();if(embN>=0){embPollAt=Date.now();pollEmbCues();}if(seekHideT)clearTimeout(seekHideT);seekHideT=setTimeout(function(){seekEl.style.opacity="0";},700);}' +
 'function seek(d){if(!v.duration)return;var base=seekTarget>=0?seekTarget:v.currentTime;seekTarget=Math.max(0,Math.min(v.duration,base+d));seekBar.className="seeking";showSeekInd();paintSeek();schedPreview();showBar();if(seekTimer)clearTimeout(seekTimer);seekTimer=setTimeout(commitSeek,1200);}' +
 'var exited=false;function exit(){if(exited)return;exited=true;try{saveProgress();pushLib(true);}catch(e){}try{v.pause();}catch(e){}' +
-'try{window.removeEventListener("popstate",onPop);}catch(e){}' +
-// one clean dark cover (same bg as the Stremio splash) so there is no flash, then a flag so
-// the shell shows a single "Taking you back to Stremio" loading splash.
 'try{var cov=document.createElement("div");cov.id="gocov";document.body.appendChild(cov);}catch(e){}' +
-'try{sessionStorage.setItem("tvBack","1");}catch(e){}' +
-'var st=null;try{st=history.state;}catch(e){}' +
-'try{new Image().src="http://127.0.0.1:8080/log?ev=exit&hl="+history.length+"&tv="+((st&&st.tv)?1:0)+"&t="+(v.currentTime|0);}catch(e){}' +
-// Adaptive: if our dummy is still the CURRENT entry (Back didn\'t pop it), drop dummy + /play
-// with go(-2); otherwise the Back already popped the dummy and /play is current, so replace it.
-// Either way /play is removed from history, so a second Back can\'t loop into the player.
-'if(st&&st.tv){try{history.go(-2);return;}catch(e){}}' +
-'location.replace("http://127.0.0.1:8080/"+(BACK||""));}' +
-'function repush(){try{history.pushState({tv:1},"");}catch(e){}}' +
-'function goBack(){if(npFocus){npFocus=false;npShown=false;npDismissed=true;paintNp();repush();}else if(mode==="menu"){menuBack();repush();}else if(mode==="controls"){mode="video";paintBtns();repush();}else{exit();}}' +
-// This TV delivers Back as a history pop. We keep ONE dummy entry: popstate closes the
-// menu/controls (re-pushing to stay), or exits when nothing is open.
-'try{history.pushState({tv:1},"");}catch(e){}' +
-'function onPop(){goBack();}window.addEventListener("popstate",onPop);' +
+'var target="http://127.0.0.1:8080/"+(BACK||"beta");' +
+'location.replace(target);}' +
+'function goBack(){if(npFocus){npFocus=false;npShown=false;npDismissed=true;paintNp();}else if(mode==="menu"){menuBack();}else if(mode==="controls"){mode="video";paintBtns();}else{exit();}}' +
+'function onPop(e){if(e&&e.preventDefault)e.preventDefault();goBack();}window.addEventListener("popstate",onPop);' +
 // ---- menus (subtitles = Off + external English-first + embedded; audio = embedded) ----
 'function openMenu(view){subView=view;menuItems=[];var html="";' +
 'if(view==="root"){html+="<div class=mh>Settings</div>";html+="<div class=mi>Audio \\u203a</div>";menuItems.push({k:"go",to:"audio"});html+="<div class=mi>Subtitles \\u203a</div>";menuItems.push({k:"go",to:"subsroot"});}' +
@@ -845,7 +832,7 @@ function playerPage(stream, ctx) {
 'v.addEventListener("seeked",hidePreview);v.addEventListener("playing",hidePreview);' +
 // ---- key handling ----
 'document.addEventListener("keydown",function(e){var k=e.keyCode;' +
-'if(k===461||k===8||k===27){e.preventDefault();e.stopPropagation();history.back();return;}' +
+'if(k===461||k===8||k===27){e.preventDefault();e.stopPropagation();goBack();return;}' +
 'showBar();' +
 'if(mode==="menu"){if(k===38){mIdx=Math.max(0,mIdx-1);paintMenu();}else if(k===40){mIdx=Math.min(menuItems.length-1,mIdx+1);paintMenu();}else if(k===13)chooseMenu();e.preventDefault();return;}' +
 'if(npFocus){if(k===13){npGo();}else if(k===38){npFocus=false;paintNp();mode="controls";paintBtns();}else if(k===40||k===37||k===39){npFocus=false;paintNp();}e.preventDefault();return;}' +
