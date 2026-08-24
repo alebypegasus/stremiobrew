@@ -1,14 +1,14 @@
-# StremioBrew
+# Stremio Lite LG
 
 A community Stremio client for **rooted LG webOS TVs (webOS 4.x / Chromium 53)** — the pre-WebAssembly generation that the official Stremio app doesn't support.
 
-> ⚡ **Optimized Edition:** Built specifically for legacy low-RAM hardware, featuring DOM virtualization, GPU texture recycling, multi-language internationalization (i18n), and modern Stremio Web UI (`web.stremio.com`).
+> ⚡ **Optimized Edition (v5.0.0):** Built specifically for legacy low-RAM hardware, featuring DOM virtualization, GPU texture recycling, multi-language internationalization (i18n), and Stremio Theater aesthetics.
 
 ---
 
 ## Features & Highlights
 
-- **Modern Stremio Web UI**: Clean top navigation (Search, Home, Discover, Library, Settings), dynamic Hero Banner with IMDb badges (★ rating, year, resolution), metadata and backdrop cross-fade.
+- **Stremio Theater UI & Aesthetics**: Clean top navigation (Search, Home, Discover, Library, Settings), dynamic Hero Banner with IMDb badges (★ rating, year, resolution), metadata and backdrop cross-fade.
 - **Ultra-Low RAM Footprint**: Off-screen image virtualization and thumbnail resolution capping prevent OOM crashes on webOS 4 (Chromium 53) TVs with 512MB RAM.
 - **Full Multi-Language Support (i18n)**:
   - 🇧🇷 Português (Brasil)
@@ -42,7 +42,7 @@ A community Stremio client for **rooted LG webOS TVs (webOS 4.x / Chromium 53)**
    ```
    https://stremiobrew.vercel.app/apps.json
    ```
-4. Find **StremioBrew** and click **Install**.
+4. Find **Stremio Lite LG** and click **Install**.
 
 ---
 

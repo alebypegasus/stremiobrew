@@ -3,9 +3,9 @@ const path = require('path');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
 
-console.log('--- Starting StremioBrew Build System ---');
+console.log('--- Starting Stremio Lite LG Build System ---');
 
-const VERSION = '1.0.0';
+const VERSION = '5.0.0';
 const IPK_NAME = `io.strem.tv.beta_${VERSION}_all.ipk`;
 
 // 1. Pack data.tar.gz from unpacked/
@@ -73,8 +73,8 @@ const manifest = {
   id: 'io.strem.tv.beta',
   version: VERSION,
   type: 'web',
-  title: 'StremioBrew',
-  appDescription: 'Community Stremio client for rooted webOS 4 TVs (Chromium 53). Ultra-low RAM optimized, multi-language, Stremio Web UI.',
+  title: 'Stremio Lite LG',
+  appDescription: 'Community Stremio client for rooted webOS 4 TVs (Chromium 53). Ultra-low RAM/VRAM optimized, Stremio Theater aesthetics, multi-language.',
   iconUri: `${BASE_URL}/icon.png`,
   sourceUrl: 'https://github.com/alebypegasus/stremiobrew',
   rootRequired: true,
@@ -90,11 +90,11 @@ const appsData = {
   packages: [
     {
       id: 'io.strem.tv.beta',
-      title: 'StremioBrew',
+      title: 'Stremio Lite LG',
       iconUri: `${BASE_URL}/icon.png`,
       pool: 'non-free',
       manifestUrl: `${BASE_URL}/api/apps/io.strem.tv.beta/manifest.json`,
-      shortDescription: 'Stremio client for rooted webOS 4 TVs with low RAM optimization and multi-language.',
+      shortDescription: 'Stremio Lite LG client for rooted webOS 4 TVs with low RAM optimization and multi-language.',
       fullDescriptionUrl: 'apps/io.strem.tv.beta/full_description.html',
       manifest: manifest
     }
@@ -122,9 +122,9 @@ fs.writeFileSync('vercel.json', JSON.stringify(vercelConfig, null, 2) + '\n');
 // 8. Write index.html at root
 const rootHtml = `<!DOCTYPE html>
 <html>
-<head><meta charset="utf-8"><title>StremioBrew</title></head>
+<head><meta charset="utf-8"><title>Stremio Lite LG</title></head>
 <body style="background:#0e0d14;color:#fff;font-family:sans-serif;text-align:center;padding-top:15vh">
-  <h1>StremioBrew Repository</h1>
+  <h1>Stremio Lite LG Repository</h1>
   <p>Homebrew Channel repo for LG webOS 4.x TVs.</p>
   <p><a style="color:#7b5bf5" href="/apps.json">apps.json</a> | <a style="color:#7b5bf5" href="/${IPK_NAME}">Download IPK (${VERSION})</a></p>
 </body>

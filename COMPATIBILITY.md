@@ -1,4 +1,4 @@
-# StremioBrew - Compatibility & Architecture Guide
+# Stremio Lite LG - Compatibility & Architecture Guide
 
 A community Stremio client designed specifically for **legacy rooted LG webOS TVs (webOS 4.x / Chromium 53)** where the modern official WebAssembly client cannot run.
 

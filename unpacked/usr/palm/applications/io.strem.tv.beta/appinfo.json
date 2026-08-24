@@ -1,10 +1,10 @@
 {
   "id": "io.strem.tv.beta",
-  "version": "1.0.0",
+  "version": "5.0.0",
   "vendor": "Stremio TV",
   "type": "web",
   "main": "index.html",
-  "title": "StremioBrew",
+  "title": "Stremio Lite LG",
   "icon": "icon.png",
   "largeIcon": "icon.png",
   "bgColor": "#0c0b11",

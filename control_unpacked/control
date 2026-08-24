@@ -1,10 +1,10 @@
 Package: io.strem.tv.beta
-Version: 1.0.0
+Version: 5.0.0
 Section: misc
 Priority: optional
 Architecture: all
 Installed-Size: 95906664
 Maintainer: N/A <nobody@example.com>
-Description: This is a webOS application.
+Description: Stremio Lite LG - Ultra-low RAM client for webOS 4.x
 webOS-Package-Format-Version: 2
 webOS-Packager-Version: x.y.x
