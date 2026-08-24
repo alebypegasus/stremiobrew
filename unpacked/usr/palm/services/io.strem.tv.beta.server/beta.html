@@ -56,27 +56,29 @@ body.trailer #dWrap { opacity: .15; }
   display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center;
   -webkit-justify-content: flex-start; justify-content: flex-start;
   padding: 0 48px; box-sizing: border-box;
-  background: linear-gradient(to bottom, rgba(14,13,20,0.92) 0%, rgba(14,13,20,0.4) 75%, transparent 100%);
+  background: linear-gradient(to bottom, rgba(14,13,20,0.95) 0%, rgba(14,13,20,0.7) 65%, transparent 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.04);
 }
 #brand {
   display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center;
-  margin-right: 36px; cursor: pointer;
+  margin-right: 42px; cursor: pointer;
 }
-#brandLogo { width: 44px; height: 44px; border-radius: 12px; margin-right: 12px; }
-#brandTitle { font-size: 26px; font-weight: 800; letter-spacing: 0.5px; color: #fff; }
+#brandLogo { width: 44px; height: 44px; border-radius: 12px; margin-right: 14px; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+#brandTitle { font-size: 27px; font-weight: 800; letter-spacing: 0.6px; color: #fff; background: linear-gradient(135deg, #ffffff 40%, #c9b8ff 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
 #navChips {
   display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center;
 }
 .chip {
   display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center;
-  padding: 10px 24px; margin-right: 10px; border-radius: 24px;
+  padding: 10px 24px; margin-right: 12px; border-radius: 24px;
   font-size: 22px; font-weight: 600; color: rgba(255,255,255,.72);
-  background: transparent; transition: background .15s ease, color .15s ease, transform .15s ease;
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.04);
+  transition: background .15s ease, color .15s ease, transform .15s ease, box-shadow .15s ease;
   cursor: pointer;
 }
-.chip svg { width: 22px; height: 22px; margin-right: 8px; fill: currentColor; }
-.chip.cur { color: #fff; font-weight: 700; background: rgba(255,255,255,.12); }
-.chip.f { background: #7b5bf5; color: #fff; font-weight: 700; transform: scale(1.04); box-shadow: 0 0 0 3px #fff; }
+.chip svg { width: 22px; height: 22px; margin-right: 10px; fill: currentColor; }
+.chip.cur { color: #fff; font-weight: 700; background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.15); }
+.chip.f { background: linear-gradient(135deg, #8a6cf5, #6842e8); color: #fff; font-weight: 700; transform: scale(1.05); box-shadow: 0 0 0 3px #fff, 0 6px 20px rgba(104,66,232,0.6); }
 #clock {
   position: absolute; right: 48px; top: 50%;
   -webkit-transform: translateY(-50%); transform: translateY(-50%);
@@ -88,18 +90,18 @@ body.trailer #dWrap { opacity: .15; }
 .scr.on { display: block; }
 
 /* Hero Banner */
-#hero { position: absolute; top: 110px; left: 48px; width: 54%; z-index: 5; }
+#hero { position: absolute; top: 110px; left: 48px; width: 56%; z-index: 5; }
 #heroLogo { max-width: 480px; max-height: 150px; display: none; }
-#heroTitle { font-size: 64px; font-weight: 800; line-height: 1.08; max-height: 140px; overflow: hidden; }
+#heroTitle { font-size: 64px; font-weight: 800; line-height: 1.08; max-height: 140px; overflow: hidden; text-shadow: 0 4px 18px rgba(0,0,0,0.8); }
 #heroBadges { margin-top: 14px; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; flex-wrap: wrap; }
 .hbadge {
-  display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 19px; font-weight: 700;
-  margin-right: 10px; background: rgba(255,255,255,.15); color: #fff;
+  display: inline-block; padding: 5px 12px; border-radius: 8px; font-size: 19px; font-weight: 700;
+  margin-right: 10px; background: rgba(255,255,255,.15); color: #fff; backdrop-filter: blur(8px);
 }
-.hbadge.rating { background: rgba(255, 210, 122, 0.2); color: #ffd27a; border: 1px solid rgba(255, 210, 122, 0.4); }
-.hbadge.quality { background: #7b5bf5; color: #fff; }
-#heroMeta { margin-top: 12px; font-size: 24px; color: #c9b8ff; font-weight: 600; }
-#heroDesc { margin-top: 12px; font-size: 22px; line-height: 1.45; color: rgba(255,255,255,.88); max-height: 96px; overflow: hidden; }
+.hbadge.rating { background: rgba(255, 210, 122, 0.25); color: #ffd27a; border: 1px solid rgba(255, 210, 122, 0.5); }
+.hbadge.quality { background: linear-gradient(135deg, #8a6cf5, #6842e8); color: #fff; box-shadow: 0 2px 10px rgba(104,66,232,0.4); }
+#heroMeta { margin-top: 12px; font-size: 24px; color: #c9b8ff; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,0.7); }
+#heroDesc { margin-top: 12px; font-size: 22px; line-height: 1.45; color: rgba(255,255,255,.92); max-height: 96px; overflow: hidden; text-shadow: 0 2px 8px rgba(0,0,0,0.7); }
 
 /* Rows and Cards */
 #rowsClip { position: absolute; top: 490px; left: 0; right: 0; bottom: 0; overflow: hidden; }
@@ -124,12 +126,12 @@ body.trailer #dWrap { opacity: .15; }
 .titlelabel {
   position: absolute; left: 0; right: 0; bottom: 0;
   padding: 28px 12px 10px; font-size: 21px; font-weight: 600;
-  background: linear-gradient(transparent, rgba(0,0,0,.92));
+  background: linear-gradient(transparent, rgba(0,0,0,.94));
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .card.f {
-  box-shadow: 0 0 0 4px #ffffff, 0 10px 28px rgba(0,0,0,0.7) !important;
-  z-index: 6; transform: scale(1.05);
+  box-shadow: 0 0 0 4px #8a6cf5, 0 12px 32px rgba(104,66,232,0.5) !important;
+  z-index: 6; transform: scale(1.06);
 }
 .card.wide { width: 380px; height: 214px; }
 .pbar { position: absolute; left: 0; right: 0; bottom: 0; height: 7px; background: rgba(255,255,255,.25); }
@@ -213,12 +215,26 @@ body.trailer #dWrap { opacity: .15; }
 #stInner { transition: transform .16s ease; }
 .sthead { padding: 16px 4px 8px; font-size: 20px; font-weight: 700; color: rgba(255,255,255,.5); text-transform: uppercase; letter-spacing: 1.2px; }
 .st {
-  padding: 18px 20px; border-radius: 10px; margin-bottom: 10px;
-  background: rgba(255,255,255,.05); transition: background .12s ease; cursor: pointer;
+  padding: 16px 20px; border-radius: 12px; margin-bottom: 12px;
+  background: rgba(255,255,255,.06); transition: background .12s ease, transform .12s ease, box-shadow .12s ease;
+  cursor: pointer; border: 1px solid rgba(255,255,255,.05);
 }
-.st .a { font-size: 24px; font-weight: 700; color: #c9b8ff; }
-.st .b { margin-top: 6px; font-size: 21px; line-height: 1.35; color: rgba(255,255,255,.92); max-height: 80px; overflow: hidden; }
-.st.f { background: #7b5bf5; }
+.st .a { font-size: 24px; font-weight: 700; color: #ffffff; }
+.st .tags { margin-top: 8px; display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; flex-wrap: wrap; }
+.tag {
+  display: inline-block; padding: 3px 9px; border-radius: 6px; font-size: 17px; font-weight: 700; margin-right: 8px; margin-top: 4px;
+}
+.tag-4k { background: rgba(255,210,122,.25); color: #ffd27a; border: 1px solid rgba(255,210,122,.5); }
+.tag-fhd { background: rgba(79,172,254,.25); color: #4facfe; border: 1px solid rgba(79,172,254,.4); }
+.tag-hd { background: rgba(255,255,255,.15); color: #e0e0e0; }
+.tag-hdr { background: rgba(247,151,30,.25); color: #f7971e; border: 1px solid rgba(247,151,30,.4); }
+.tag-rd { background: rgba(123,91,245,.35); color: #c9b8ff; border: 1px solid #7b5bf5; }
+.tag-tor { background: rgba(0,242,254,.2); color: #00f2fe; border: 1px solid rgba(0,242,254,.4); }
+.tag-aud { background: rgba(0,230,118,.2); color: #00e676; }
+.tag-sz { background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); font-variant-numeric: tabular-nums; }
+.st .b { margin-top: 8px; font-size: 20px; line-height: 1.35; color: rgba(255,255,255,.75); max-height: 60px; overflow: hidden; }
+.st.f { background: #7b5bf5; box-shadow: 0 0 0 3px #fff, 0 8px 24px rgba(123,91,245,.5); transform: scale(1.02); }
+.st.f .b { color: #fff; }
 .stmsg { padding: 20px; font-size: 23px; color: rgba(255,255,255,.65); }
 
 /* Discover Filter Bar */
@@ -457,6 +473,7 @@ var I18N = {
     "Off": "Off",
     "Default audio language": "Default audio language",
     "Playback": "Playback",
+    "Preferred stream provider": "Preferred stream provider",
     "Seek step": "Seek step",
     "Auto-play next episode": "Auto-play next episode",
     "Background trailers": "Background trailers",
@@ -555,6 +572,7 @@ var I18N = {
     "Off": "Desligado",
     "Default audio language": "Idioma de áudio padrão",
     "Playback": "Reprodução",
+    "Preferred stream provider": "Provedor / Stream Preferido",
     "Seek step": "Passo de busca",
     "Auto-play next episode": "Reproduzir próximo episódio",
     "Background trailers": "Trailers de fundo",
@@ -3510,11 +3528,29 @@ var streamsUI = {
     var host = $('stInner'); host.innerHTML = ''; this.items = []; this.els = [];
     var showHeads = (this.filter < 0);
     var self = this;
+    var pref = lsRaw('prefStream', 'auto');
+    function getStreamScore(s, p){
+      var full = (String(s.name || '') + ' ' + String(s.title || '')).toLowerCase();
+      var score = 0;
+      if (p === 'rd' && (full.indexOf('rd+') >= 0 || full.indexOf('realdebrid') >= 0 || full.indexOf('debrid') >= 0)) score += 1000;
+      if (p === 'brazuca' && (full.indexOf('brazuca') >= 0 || full.indexOf('dublado') >= 0 || full.indexOf('dual') >= 0 || full.indexOf('pt-br') >= 0 || full.indexOf('nacional') >= 0)) score += 1000;
+      if (p === 'torrentio' && (String(s.addon || '').toLowerCase().indexOf('torrentio') >= 0 || full.indexOf('torrentio') >= 0)) score += 1000;
+      if (p === '4k' && (full.indexOf('4k') >= 0 || full.indexOf('2160p') >= 0)) score += 800;
+      if (p === '1080p' && full.indexOf('1080p') >= 0) score += 800;
+      if (full.indexOf('rd+') >= 0 || full.indexOf('realdebrid') >= 0) score += 150;
+      if (full.indexOf('4k') >= 0 || full.indexOf('2160p') >= 0) score += 100;
+      else if (full.indexOf('1080p') >= 0) score += 80;
+      else if (full.indexOf('720p') >= 0) score += 40;
+      if (full.indexOf('hdr') >= 0 || full.indexOf('dv') >= 0) score += 30;
+      if (full.indexOf('5.1') >= 0 || full.indexOf('atmos') >= 0) score += 20;
+      return score;
+    }
     for (var gi = 0; gi < this.groups.length; gi++){
       var g = this.groups[gi];
       if (!g || !g.items.length) continue;
       if (this.filter >= 0 && gi !== this.filter) continue;
       if (this.items.length >= 80) break;
+      g.items.sort(function(a, b){ return getStreamScore(b, pref) - getStreamScore(a, pref); });
       if (showHeads){
         var h = document.createElement('div'); h.className = 'sthead'; h.textContent = g.name || t('Addon'); host.appendChild(h);
       }
@@ -3522,6 +3558,27 @@ var streamsUI = {
         (function(s){
           var d = document.createElement('div'); d.className = 'st';
           var a = document.createElement('div'); a.className = 'a'; a.textContent = String(s.name || s.addon || '').replace(/\n/g, ' '); d.appendChild(a);
+          
+          var full = (String(s.name || '') + ' ' + String(s.title || '')).toLowerCase();
+          var tags = [];
+          if (full.indexOf('4k') >= 0 || full.indexOf('2160p') >= 0) tags.push({ c: 'tag tag-4k', t: '4K UHD' });
+          else if (full.indexOf('1080p') >= 0) tags.push({ c: 'tag tag-fhd', t: '1080p' });
+          else if (full.indexOf('720p') >= 0) tags.push({ c: 'tag tag-hd', t: '720p' });
+          if (full.indexOf('hdr') >= 0 || full.indexOf('hdr10') >= 0 || full.indexOf('dv') >= 0 || full.indexOf('dolby vision') >= 0) tags.push({ c: 'tag tag-hdr', t: 'HDR' });
+          if (full.indexOf('rd+') >= 0 || full.indexOf('realdebrid') >= 0 || full.indexOf('debrid') >= 0) tags.push({ c: 'tag tag-rd', t: 'RD+' });
+          else if (full.indexOf('torrent') >= 0 || full.indexOf('seed') >= 0 || full.indexOf('peer') >= 0) tags.push({ c: 'tag tag-tor', t: 'P2P' });
+          if (full.indexOf('5.1') >= 0 || full.indexOf('7.1') >= 0 || full.indexOf('atmos') >= 0 || full.indexOf('dts') >= 0) tags.push({ c: 'tag tag-aud', t: 'Surround' });
+          var szMatch = (String(s.title || '')).match(/([0-9]+(?:\.[0-9]+)?\s*(?:gb|mb))/i);
+          if (szMatch) tags.push({ c: 'tag tag-sz', t: szMatch[1].toUpperCase() });
+          
+          if (tags.length){
+            var tgWrap = document.createElement('div'); tgWrap.className = 'tags';
+            for (var k = 0; k < tags.length; k++){
+              var sp = document.createElement('span'); sp.className = tags[k].c; sp.textContent = tags[k].t; tgWrap.appendChild(sp);
+            }
+            d.appendChild(tgWrap);
+          }
+          
           var b = document.createElement('div'); b.className = 'b'; b.textContent = String(s.title || '').replace(/\n/g, '  '); d.appendChild(b);
           d.addEventListener('click', function(){ self.playStream(s); });
           host.appendChild(d); self.items.push(s); self.els.push(d);
@@ -3568,6 +3625,31 @@ var search = {
     var self = this;
     if (!$('sBox')._wired){
       $('sBox')._wired = true;
+      var _lastVal = '';
+      var _pollTimer = null;
+      function checkInput(){
+        var v = $('sBox').value;
+        if (v !== _lastVal){
+          _lastVal = v;
+          if (v.trim().length >= 2){
+            if (self._debounce) clearTimeout(self._debounce);
+            self._debounce = setTimeout(function(){ self.run(v); }, 450);
+          }
+        }
+      }
+      $('sBox').addEventListener('input', checkInput);
+      $('sBox').addEventListener('textInput', checkInput);
+      $('sBox').addEventListener('change', checkInput);
+      $('sBox').addEventListener('compositionend', checkInput);
+      $('sBox').addEventListener('focus', function(){
+        if (_pollTimer) clearInterval(_pollTimer);
+        _pollTimer = setInterval(checkInput, 150);
+      });
+      $('sBox').addEventListener('blur', function(){
+        if (_pollTimer) clearInterval(_pollTimer);
+        _pollTimer = null;
+        checkInput();
+      });
       $('sBox').addEventListener('keydown', function(e){
         if (e.keyCode === 13){ e.preventDefault(); e.stopPropagation(); $('sBox').blur(); self.run($('sBox').value); }
         else if (e.keyCode === 40){ e.preventDefault(); e.stopPropagation(); $('sBox').blur(); if (self.rows.length){ self.zone = 'rows'; self.paint(); } }
@@ -3691,6 +3773,14 @@ var LANG_OPTS = [
   ['ukr', 'Українська']
 ];
 var AUD_OPTS = LANG_OPTS.slice(1);
+var STREAM_OPTS = [
+  ['auto', 'Automático (Melhor Match)'],
+  ['rd', 'Real-Debrid (RD+)'],
+  ['brazuca', 'Brazuca / Dublado PT-BR'],
+  ['torrentio', 'Torrentio'],
+  ['1080p', '1080p Full HD'],
+  ['4k', '4K Ultra HD']
+];
 
 var settings = {
   idx: 0, els: [], defs: [], fdefs: [],
@@ -3715,11 +3805,12 @@ var settings = {
       { k: 'subsBgStyle', lb: t('Subtitle background'), opts: [['0', t('None')], ['1', t('Solid')], ['.6', t('Transparent')]], d: '0' },
       { k: 'embSubsMode', lb: t('Embedded subtitles engine'), opts: [['server', t('Extract (recommended)')], ['native', t('TV native')]], d: 'server' },
       { head: t('Audio') },
-      { k: 'enableDefaultAudioTrack', lb: t('Auto audio track'), opts: [['true', t('On')], ['false', t('Off')]], d: 'false' },
+      { k: 'enableDefaultAudioTrack', lb: t('Auto audio track'), opts: [['true', t('On')], ['false', t('Off')]], d: 'true' },
       { k: 'defaultAudioTrack', lb: t('Default audio language'), opts: AUD_OPTS, d: 'por' },
       { head: t('Playback') },
-      { k: 'seekStep', lb: t('Seek step'), opts: [['5','5s'],['10','10s'],['15','15s'],['20','20s'],['30','30s']], d: '10' },
+      { k: 'prefStream', lb: t('Preferred stream provider'), opts: STREAM_OPTS, d: 'auto' },
       { k: 'bingeWatch', lb: t('Auto-play next episode'), opts: [['true', t('On')], ['false', t('Off')]], d: 'true' },
+      { k: 'seekStep', lb: t('Seek step'), opts: [['5','5s'],['10','10s'],['15','15s'],['20','20s'],['30','30s']], d: '10' },
       { k: 'bgTrailer', lb: t('Background trailers'), opts: [['true', t('On')], ['false', t('Off')]], d: 'true' },
       { k: 'scrubPreview', lb: t('Scrubbing previews'), opts: [['true', t('On')], ['false', t('Off')]], d: 'true' },
       { head: t('Addons') },

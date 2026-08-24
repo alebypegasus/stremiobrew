@@ -65,7 +65,7 @@ function startStreamingServer() {
   child.unref();
 }
 
-portUp(SERVER_PORT, function (up) { if (!up) startStreamingServer(); });
+portUp(SERVER_PORT, function (up) { if (!up && process.platform === 'linux' && fs.existsSync(LOADER)) startStreamingServer(); });
 
 // ---------- injected CSS / JS ----------
 var CSS = [
@@ -631,8 +631,7 @@ function playerPage(stream, ctx) {
 'setInterval(function(){if(!v.paused){saveProgress();pushLib(false);if(v.duration&&v.currentTime/v.duration>0.95)markWatchedLocal();}},10000);v.addEventListener("pause",function(){saveProgress();pushLib(true);});v.addEventListener("ended",function(){saveProgress();pushLib(true);});' +
 // local watched flag: add this video id to state.watchedEpisodes (drives the beta checkmarks)
 'function markWatchedLocal(){try{var it=readLib();if(!it||!it.state)return;var wv=VID||ID;if(!it.state.watchedEpisodes)it.state.watchedEpisodes=[];for(var i=0;i<it.state.watchedEpisodes.length;i++)if(it.state.watchedEpisodes[i]===wv)return;it.state.watchedEpisodes.push(wv);it.state.flaggedWatched=1;it._mtime=new Date().toISOString();localStorage.setItem(LIBKEY,JSON.stringify(it));pushLib(true);}catch(e){}}' +
-// binge: when the episode ends, jump straight to the next one (detail deep-link opens its streams)
-'v.addEventListener("ended",function(){markWatchedLocal();var binge=(lsGet("bingeWatch","true")!=="false")&&(lsGet("enableNextVideo","true")!=="false");if(binge&&NEXTHREF){showToast("Next episode\\u2026");setTimeout(function(){location.replace(NEXTHREF);},600);}});' +
+'v.addEventListener("ended",function(){markWatchedLocal();var binge=(lsGet("bingeWatch","true")!=="false")&&(lsGet("enableNextVideo","true")!=="false");if(binge&&NEXTVID){showToast("Próximo episódio…");setTimeout(function(){nextEp();},500);}});' +
 // ---- external subtitles (English first) ----
 'var extSubs=[],cues=null,embTrack=null,subSize=38,subColor="#fff",subOutline="#000000",subBgOp=0,curSub="off",subDelay=0,subView="root",extLang="";' +
 // ---- pull the shell Settings (same-origin localStorage) so they drive OUR player ----
@@ -645,13 +644,14 @@ function playerPage(stream, ctx) {
 'var PREVIEW_ON=(lsGet("scrubPreview","true")!=="false");' +
 // default to English auto-subs when the setting was NEVER configured; a stored "" = user chose Off
 'var rawSub=lsGet("subsLang",null);if(rawSub==null)rawSub=lsGet("subtitles",null);var WANTSUB=(rawSub==null?"eng":rawSub).toLowerCase();' +
-'var WANTAUD=(lsGet("enableDefaultAudioTrack","false")==="true")?(lsGet("defaultAudioTrack","")||"").toLowerCase():"";' +
+'var ISO_AUDIO_MAP={"por":["por","pt","pob","pt-br","pt-pt","portuguese","português","portugues","dublado"],"eng":["eng","en","english","inglês","ingles"],"spa":["spa","es","spanish","español","espanol","castellano"],"fre":["fre","fra","fr","french","français","francais"],"ger":["ger","deu","de","german","deutsch"],"ita":["ita","it","italian","italiano"],"rus":["rus","ru","russian","русский"],"tur":["tur","tr","turkish","türkçe","turkce"],"pol":["pol","pl","polish","polski"],"jpn":["jpn","ja","japanese","japonês","japones"],"kor":["kor","ko","korean","coreano"],"chi":["chi","zho","zh","chinese","chinês","chines"]};' +
+'function matchLangIso(target,trackLang,trackLabel){if(!target)return false;target=(target||"").toLowerCase().trim();trackLang=(trackLang||"").toLowerCase().trim();trackLabel=(trackLabel||"").toLowerCase().trim();if(trackLang===target||trackLabel===target)return true;if(trackLang.indexOf(target)===0||target.indexOf(trackLang)===0)return true;for(var code in ISO_AUDIO_MAP){var aliases=ISO_AUDIO_MAP[code];if(code===target||aliases.indexOf(target)>=0){if(aliases.indexOf(trackLang)>=0)return true;for(var a=0;a<aliases.length;a++){if(trackLabel.indexOf(aliases[a])>=0)return true;}}}return false;}' +
+'var WANTAUD=(function(){var p=null;try{p=JSON.parse(lsGet("profile","{}"));}catch(e){}var pl=(p&&p.settings&&p.settings.audioLanguage)||"";var lsAud=lsGet("defaultAudioTrack","")||lsGet("audioLanguage","");var res=lsAud||pl||lsGet("uiLang","por")||"por";return (res||"").toLowerCase();})();' +
 'var embTracks=null,embTracksLoading=true,embErr="",embReopenArmed=false,embN=-1,embPollAt=0,embFirst=false;' +
-'var autoSubDone=false;function autoSub(){if(autoSubDone||curSub!=="off"||!WANTSUB)return;for(var i=0;i<extSubs.length;i++){if((extSubs[i].lang||"").toLowerCase()===WANTSUB){autoSubDone=true;setExtSub(extSubs[i].u);showToast("Subtitles: "+extSubs[i].name);return;}}}' +
+'var autoSubDone=false;function autoSub(){if(autoSubDone||curSub!=="off"||!WANTSUB)return;for(var i=0;i<extSubs.length;i++){if(matchLangIso(WANTSUB,extSubs[i].lang,extSubs[i].name)){autoSubDone=true;setExtSub(extSubs[i].u);showToast("Subtitles: "+extSubs[i].name);return;}}}' +
 'if(TYPE&&VID){xhr("/subs?type="+encodeURIComponent(TYPE)+"&vid="+encodeURIComponent(VID),function(j){if(j&&j.subtitles){extSubs=j.subtitles;autoSub();}});}' +
-// honour the Settings default audio language: enable the matching embedded audio track
-'var autoAudDone=false;function autoAudio(){if(autoAudDone||!WANTAUD)return;try{var ts=v.audioTracks;if(!ts||!ts.length)return;for(var i=0;i<ts.length;i++){var l=(ts[i].language||"").toLowerCase();if(l===WANTAUD||l.indexOf(WANTAUD)===0||WANTAUD.indexOf(l)===0){autoAudDone=true;for(var j=0;j<ts.length;j++)ts[j].enabled=(j===i);return;}}}catch(e){}}' +
-'v.addEventListener("loadeddata",autoAudio);v.addEventListener("canplay",autoAudio);' +
+'var autoAudDone=false;function autoAudio(){if(autoAudDone||!WANTAUD)return;try{var ts=v.audioTracks;if(!ts||!ts.length)return;var matchedIdx=-1;for(var i=0;i<ts.length;i++){if(matchLangIso(WANTAUD,ts[i].language,ts[i].label)){matchedIdx=i;break;}}if(matchedIdx>=0){autoAudDone=true;for(var j=0;j<ts.length;j++)ts[j].enabled=(j===matchedIdx);try{if(window.PalmServiceBridge){var bridge=new PalmServiceBridge();bridge.call("luna://com.webos.media/selectTrack",JSON.stringify({type:"audio",index:matchedIdx}));}}catch(e){}var selTrack=ts[matchedIdx];showToast("Áudio: "+(selTrack.label||selTrack.language||("Faixa "+(matchedIdx+1))));}}catch(e){}}' +
+'v.addEventListener("loadeddata",autoAudio);v.addEventListener("canplay",autoAudio);v.addEventListener("loadedmetadata",autoAudio);' +
 // probe embedded sub tracks immediately so they\'re ready the moment the user opens the menu
 'xhr("/embtracks?u="+encodeURIComponent(URL),function(j){embTracksLoading=false;embTracks=(j&&j.tracks)||[];embErr=(j&&j.err)||"";});' +
 'function setExtSub(u){curSub="ext:"+u;embTrack=null;embN=-1;cues=null;subEl.innerHTML="";for(var i=0;i<v.textTracks.length;i++){try{v.textTracks[i].mode="disabled";}catch(e){}}xhr("/sub?u="+encodeURIComponent(u),function(j){cues=(j&&j.cues)||[];});}' +
@@ -685,7 +685,15 @@ function playerPage(stream, ctx) {
 'v.addEventListener("play",updatePP);v.addEventListener("pause",updatePP);' +
 'if(NEXTVID){document.getElementById("b_next").style.display="";}' +
 'var btns=[];(function(){var ids=["b_rw","b_pp","b_ff","b_next","b_set"];for(var i=0;i<ids.length;i++){var el=document.getElementById(ids[i]);if(el&&el.style.display!=="none"){el._base=el.className;btns.push(el);}}})();' +
-'function nextEp(){if(NEXTHREF){try{saveProgress();markWatchedLocal();}catch(e){}location.replace(NEXTHREF);}}' +
+'var nextCandidate=null,nextPrefetched=false;' +
+'function prefetchNextStream(){if(nextPrefetched||!NEXTVID||!TYPE)return;nextPrefetched=true;' +
+'var addons=[];try{var p=JSON.parse(lsGet("profile","{}"));if(p&&p.addons&&p.addons.length)addons=p.addons;else addons=JSON.parse(lsGet("installedAddons","[]"));}catch(e){}' +
+'var sList=[];for(var i=0;i<addons.length;i++){var m=addons[i].manifest||addons[i];if(m&&m.resources){for(var r=0;r<m.resources.length;r++){var res=m.resources[r];var nm=(typeof res==="string")?res:(res.name||"");var tps=(typeof res==="object")?(res.types||[]):(m.types||[]);if(nm==="stream"&&(!tps.length||tps.indexOf(TYPE)>=0)){var base=(addons[i].transportUrl||m.transportUrl||"").replace(/\/manifest\.json$/,"");if(base)sList.push({name:m.name||"Addon",base:base});break;}}}}' +
+'if(!sList.length)sList.push({name:"Torrentio",base:"https://torrentio.strem.fun"});' +
+'var pref=lsGet("prefStream","auto");var prevSname=(SNAME||"").toLowerCase();var bestSc=-1;' +
+'for(var a=0;a<sList.length;a++){(function(ad){xhr(ad.base+"/stream/"+encodeURIComponent(TYPE)+"/"+encodeURIComponent(NEXTVID)+".json",function(j){if(!j||!j.streams||!j.streams.length)return;for(var s=0;s<j.streams.length;s++){var st=j.streams[s];var u=st.url;if(!u&&st.infoHash)u="http://127.0.0.1:11470/"+st.infoHash+"/"+(st.fileIdx||0);if(!u)continue;var full=(String(st.name||"")+" "+String(st.title||st.description||"")).toLowerCase();var sc=0;if(prevSname&&full.indexOf(prevSname.slice(0,18))>=0)sc+=500;if(ad.name&&prevSname.indexOf(ad.name.toLowerCase())>=0)sc+=200;if(pref==="rd"&&(full.indexOf("rd+")>=0||full.indexOf("realdebrid")>=0))sc+=300;if(pref==="brazuca"&&(full.indexOf("brazuca")>=0||full.indexOf("dublado")>=0||full.indexOf("dual")>=0))sc+=300;if(pref==="torrentio"&&(ad.name.toLowerCase().indexOf("torrentio")>=0||full.indexOf("torrentio")>=0))sc+=300;if(pref==="4k"&&(full.indexOf("4k")>=0||full.indexOf("2160p")>=0))sc+=250;if(pref==="1080p"&&full.indexOf("1080p")>=0)sc+=250;if(full.indexOf("rd+")>=0)sc+=50;if(full.indexOf("1080p")>=0)sc+=30;if(sc>bestSc){bestSc=sc;nextCandidate={url:u,name:st.name||ad.name,title:st.title||""};}}});})(sList[a]);}}' +
+'function nextEp(){try{saveProgress();markWatchedLocal();}catch(e){}if(nextCandidate&&nextCandidate.url){showToast("Iniciando próximo episódio…");location.replace("http://127.0.0.1:8080/play?u="+encodeURIComponent(nextCandidate.url)+"&type="+encodeURIComponent(TYPE)+"&id="+encodeURIComponent(ID)+"&vid="+encodeURIComponent(NEXTVID)+"&back="+encodeURIComponent(BACK));}else if(NEXTHREF){location.replace(NEXTHREF);}}' +
+
 'var mode="video",bIdx=1,mIdx=0,menuItems=[],hideT=null;' +
 'function fmt(s){s=Math.max(0,s|0);var h=(s/3600)|0,m=((s%3600)/60)|0,x=s%60;function p(n){return(n<10?"0":"")+n;}return(h?h+":"+p(m):m)+":"+p(x);}' +
 'function showBar(){bar.className="show";if(hideT)clearTimeout(hideT);hideT=setTimeout(function(){if(mode==="video"){bar.className="";}},4000);}' +
@@ -782,6 +790,7 @@ function playerPage(stream, ctx) {
 'else if(SIMHREF){L.textContent="Liked this?";T.textContent="Watch something similar";B.textContent="Find similar";}})();' +
 'function npGo(){if(isNextEp)nextEp();else if(SIMHREF){try{saveProgress();}catch(e){}location.replace(SIMHREF);}}' +
 'function checkNp(){if(!POPHREF||npDismissed||!v.duration)return;var rem=v.duration-v.currentTime;' +
+'if(rem<=30&&!nextPrefetched&&isNextEp)prefetchNextStream();' +
 'if(rem<=180&&rem>2&&!npShown){npShown=true;paintNp();}' +
 'else if(rem>180&&npShown){npShown=false;npFocus=false;paintNp();}}' +
 'v.addEventListener("timeupdate",checkNp);' +
