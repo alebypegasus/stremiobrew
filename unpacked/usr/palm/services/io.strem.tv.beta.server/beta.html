@@ -2547,7 +2547,7 @@ function getCatalogUrl(url, key, type, cb){
     var same = cached && cached.items && JSON.stringify(cached.items) === JSON.stringify(slim);
     lsSet(ck, { t: Date.now(), items: slim });
     if (!same) cb(slim, false);
-  });
+  }, 8000);
 }
 
 var metaMem = {};
@@ -2567,9 +2567,10 @@ function getMeta(type, id, cb){
       lsSet('beta_meta_' + k, { t: Date.now(), meta: m });
       cb(m);
     } else cb(null);
-  });
+  }, 8000);
 }
 
+var _descTimer = null;
 function getLocalizedDesc(id, text, cb){
   if (!text){ cb(''); return; }
   var lang = UI_LANG || 'pt-BR';
@@ -2578,17 +2579,17 @@ function getLocalizedDesc(id, text, cb){
   var cacheKey = 'syn_' + shortLang + '_' + id;
   var cached = lsRaw(cacheKey, null);
   if (cached){ cb(cached); return; }
-
-  var url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.slice(0, 480)) + '&langpair=en|' + encodeURIComponent(lang);
-  xhrJson(url, function(j){
-    var trans = (j && j.responseData && j.responseData.translatedText) || text;
-    if (trans && trans !== text && trans.indexOf('MYMEMORY WARNING') < 0){
-      lsRawSet(cacheKey, trans);
-      cb(trans);
-    } else {
-      cb(text);
-    }
-  }, 4500);
+  if (_descTimer) clearTimeout(_descTimer);
+  _descTimer = setTimeout(function(){
+    var url = 'https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.slice(0, 300)) + '&langpair=en|' + encodeURIComponent(lang);
+    xhrJson(url, function(j){
+      var trans = (j && j.responseData && j.responseData.translatedText) || '';
+      if (trans && trans !== text && trans.indexOf('MYMEMORY WARNING') < 0){
+        lsRawSet(cacheKey, trans);
+        cb(trans);
+      }
+    }, 2500);
+  }, 500);
 }
 
 /* =========================================================
@@ -2606,7 +2607,19 @@ function streamAddons(type){
     }
     if (!okRes) continue;
     var types = m.types || [];
-    if (types.length && types.indexOf(type) < 0) continue;
+    var allow = (!types.length || types.indexOf(type) >= 0);
+    if (!allow){
+      for (var r2 = 0; r2 < res.length; r2++){
+        var rr2 = res[r2];
+        if (rr2 && (rr2 === 'stream' || rr2.name === 'stream')){
+          if (!rr2.types || !rr2.types.length || rr2.types.indexOf(type) >= 0){
+            allow = true;
+            break;
+          }
+        }
+      }
+    }
+    if (!allow) continue;
     out.push({ name: m.name || 'Addon', base: addonBase(a[i]) });
   }
   return out;
@@ -2617,6 +2630,10 @@ function fetchStreams(type, vid, onPart, onDone){
   var pending = list.length;
   var total = 0;
   if (!pending){ onDone(0); return; }
+  var finished = false;
+  var safetyTimer = setTimeout(function(){
+    if (!finished){ finished = true; onDone(total); }
+  }, 10000);
   for (var i = 0; i < list.length; i++){
     (function(ad, idx){
       xhrJson(ad.base + '/stream/' + type + '/' + encodeURIComponent(vid) + '.json', function(j){
@@ -2632,8 +2649,12 @@ function fetchStreams(type, vid, onPart, onDone){
         total += out.length;
         if (out.length) onPart(out, idx, ad.name);
         pending--;
-        if (pending <= 0) onDone(total);
-      }, 35000);
+        if (pending <= 0 && !finished){
+          finished = true;
+          clearTimeout(safetyTimer);
+          onDone(total);
+        }
+      }, 9000);
     })(list[i], i);
   }
 }
@@ -3226,8 +3247,10 @@ function openItem(it){
 var detail = {
   meta: null, type: '', id: '', vid: null, zone: 'btns', btnIdx: 0, btnEls: [], btnActs: [],
   seasons: [], seasonIdx: 0, eps: [], epIdx: 0, epEls: [], seasonEls: [], watchedMap: {},
+  autoStreams: false,
   enter: function(p){
     this.type = p.type; this.id = p.id; this.vid = p.vid || null;
+    this.autoStreams = !!p.autoStreams;
     this.zone = 'btns'; this.btnIdx = 0; this.meta = null; this.watchedMap = {};
     $('dTitle').textContent = ''; $('dDesc').textContent = ''; $('dMeta').textContent = ''; $('dInfo').innerHTML = '';
     $('dLogo').style.display = 'none'; $('dPoster').style.display = 'none'; $('dBtns').innerHTML = '';
@@ -3277,7 +3300,9 @@ var detail = {
     return (this.seasons[0] && this.seasons[0].eps[0]) ? this.seasons[0].eps[0].id : null;
   },
   render: function(){
+    var self = this;
     var m = this.meta;
+    try {
     $('dTitle').textContent = m.name || '';
     var lg = $('dLogo');
     if (m.logo){
@@ -3307,14 +3332,16 @@ var detail = {
     if (m.awards) info += '<div><span class="dlbl">' + t('Awards') + '</span>' + esc(String(m.awards).slice(0, 80)) + '</div>';
     $('dInfo').innerHTML = info;
     $('dDesc').textContent = m.description || '';
-    getLocalizedDesc(this.id, m.description || '', function(localized){
-      if (SCR === 'detail' && detail.id === self.id && localized) $('dDesc').textContent = localized;
-    });
+    try {
+      getLocalizedDesc(self.id, m.description || '', function(localized){
+        if (SCR === 'detail' && detail.id === self.id && localized) $('dDesc').textContent = localized;
+      });
+    } catch(e){}
     setBg(m.background || bgOf({ id: this.id, poster: m.poster }));
+    } catch(e){ console.error('render info error:', e); }
 
     var bt = $('dBtns'); bt.innerHTML = '';
     this.btnEls = []; this.btnActs = [];
-    var self = this;
     this.loadWatched();
     if (this.type === 'series') this.buildSeasons();
 
@@ -3324,15 +3351,18 @@ var detail = {
     this.addBtn(this.inLib() ? t('In Library') : t('+ Library'), function(){ self.toggleLib(); });
     this.paint();
 
+    var wantAutoStreams = this.autoStreams;
+    this.autoStreams = false;
+
     if (this.type === 'series'){
       var lib = lsJson(PRE + this.id);
       var av = this.vid || (lib && lib.state && lib.state.timeOffset > 60000 && lib.state.video_id) || this.firstUnwatched();
       this.vid = null;
-      if (av) this.selectEpisode(av, true);
+      if (av){
+        this.selectEpisode(av, !wantAutoStreams);
+      }
     } else {
-      setTimeout(function(){
-        if (SCR === 'detail' && detail.meta === m && !streamsUI.open) self.openStreams(self.id);
-      }, 250);
+      self.openStreams(self.id);
     }
   },
   addBtn: function(label, act){
@@ -3507,14 +3537,21 @@ var streamsUI = {
     this.zone = 'list'; this.filter = -1; this.chipIdx = 0; this.chips = []; this.chipEls = [];
     $('streams').style.display = 'block'; $('stChips').innerHTML = '';
     $('stSub').textContent = (title || '') + (vid && vid.indexOf(':') > 0 ? (' · S' + vid.split(':')[1] + ' E' + vid.split(':')[2]) : '');
-    $('stInner').innerHTML = '<div class="stmsg">' + t('Searching streams…') + '</div>';
+    var addonCount = streamAddons(type).length;
+    $('stInner').innerHTML = '<div class="stmsg">' + t('Searching streams…') + (addonCount ? (' (' + addonCount + ' addons)') : ' (0 addons — sincronize em Configurações)') + '</div>';
     var q = resumeSearch(id, vid);
     var self = this;
     if (q) this.push([{ addon: t('Resume last stream'), name: t('Resume last stream'), title: t('The exact stream you played before'), stored: q }], 0, t('Resume last stream'));
     fetchStreams(type, vid, function(part, gi, gn){
       self.push(part, gi + 1, gn);
-    }, function(){
-      if (!self.items.length && self.filter < 0) $('stInner').innerHTML = '<div class="stmsg">' + t('No streams found.') + '</div>';
+    }, function(total){
+      if (!self.items.length && self.filter < 0){
+        if (!addonCount){
+          $('stInner').innerHTML = '<div class="stmsg">Nenhum addon de stream instalado.<br>Vá em Configurações → Sincronizar complementos.</div>';
+        } else {
+          $('stInner').innerHTML = '<div class="stmsg">' + t('No streams found.') + '</div>';
+        }
+      }
     });
   },
   push: function(arr, gIdx, gName){
@@ -3522,7 +3559,11 @@ var streamsUI = {
     var g = this.groups[gIdx];
     if (!g) g = this.groups[gIdx] = { name: gName, items: [] };
     for (var i = 0; i < arr.length && g.items.length < 35; i++) g.items.push(arr[i]);
-    this.renderChips(); this.rebuild();
+    var self = this;
+    if (this._renderT) clearTimeout(this._renderT);
+    this._renderT = setTimeout(function(){
+      if (self.open){ self.renderChips(); self.rebuild(); }
+    }, 40);
   },
   renderChips: function(){
     var host = $('stChips'); host.innerHTML = '';
@@ -3704,8 +3745,8 @@ var search = {
         self.paint();
       }
     }
-    xhrJson(CIN + '/catalog/movie/top/search=' + encodeURIComponent(query) + '.json', function(j){ add(t('Movies'), (j && j.metas) || []); });
-    xhrJson(CIN + '/catalog/series/top/search=' + encodeURIComponent(query) + '.json', function(j){ add(t('Series'), (j && j.metas) || []); });
+    xhrJson(CIN + '/catalog/movie/top/search=' + encodeURIComponent(query) + '.json', function(j){ add(t('Movies'), (j && j.metas) || []); }, 6000);
+    xhrJson(CIN + '/catalog/series/top/search=' + encodeURIComponent(query) + '.json', function(j){ add(t('Series'), (j && j.metas) || []); }, 6000);
   },
   paint: function(){
     $('sBox').className = (this.zone === 'input') ? 'f' : '';
@@ -4213,13 +4254,18 @@ function boot(){
   var h = location.hash || '';
   var m = h.match(/^#detail\/([^\/]+)\/([^\/]+)(?:\/(.+))?$/);
   var ms = h.match(/^#sim\/([^\/]+)\/([^\/]+)$/);
+  var returning = !!(m || ms);
+  if (returning) $('boot').style.display = 'none';
   showScr('home'); home.enter();
-  if (m) goScr('detail', { type: m[1], id: m[2], vid: m[3] ? decodeURIComponent(m[3]) : null });
+  if (m){
+    var vid = m[3] ? decodeURIComponent(m[3]) : null;
+    goScr('detail', { type: m[1], id: m[2], vid: vid, autoStreams: true });
+  }
   else if (ms) goScr('sim', { type: ms[1], id: ms[2] });
   try { history.replaceState(history.state, '', '/beta'); } catch(e){}
-  setTimeout(function(){ $('boot').style.display = 'none'; }, 100);
-  setTimeout(function(){ pullLib(function(){ invalidateBoards(); if (SCR === 'home' || SCR === 'lib') refreshCurBoard(); }); }, 600);
-  setTimeout(function(){ syncAddons(function(changed){ if (changed){ toast(t('Addons updated')); refreshCurBoard(); } }); }, 800);
+  if (!returning) setTimeout(function(){ $('boot').style.display = 'none'; }, 100);
+  setTimeout(function(){ pullLib(function(){ invalidateBoards(); if (SCR === 'home' || SCR === 'lib') refreshCurBoard(); }); }, returning ? 200 : 600);
+  setTimeout(function(){ syncAddons(function(changed){ if (changed){ toast(t('Addons updated')); refreshCurBoard(); } }); }, returning ? 400 : 800);
 }
 
 if (document.readyState !== 'loading') boot();

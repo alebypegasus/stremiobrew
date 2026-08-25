@@ -1,14 +1,14 @@
 {
   "id": "io.strem.tv.beta",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "type": "web",
   "title": "Stremio Lite LG",
   "appDescription": "Community Stremio client for rooted webOS 4 TVs (Chromium 53). Ultra-low RAM/VRAM optimized, Stremio Theater aesthetics, multi-language.",
   "iconUri": "https://stremiobrew.vercel.app/icon.png",
   "sourceUrl": "https://github.com/alebypegasus/stremiobrew",
   "rootRequired": true,
-  "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_5.0.0_all.ipk",
+  "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_5.0.1_all.ipk",
   "ipkHash": {
-    "sha256": "9450a0cfb033d777129ffe0c5af8951a63b21a0da5c3ae740601a845803a7009"
+    "sha256": "8887f92b12d6bc53f041606d8d6cd0adeeedd8d3d37658e11243a0d11e6746ce"
   }
 }

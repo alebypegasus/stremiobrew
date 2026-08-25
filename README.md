@@ -2,7 +2,7 @@
 
 A community Stremio client for **rooted LG webOS TVs (webOS 4.x / Chromium 53)** — the pre-WebAssembly generation that the official Stremio app doesn't support.
 
-> ⚡ **Optimized Edition (v5.0.0):** Built specifically for legacy low-RAM hardware, featuring DOM virtualization, GPU texture recycling, multi-language internationalization (i18n), and Stremio Theater aesthetics.
+> ⚡ **Optimized Edition (v5.0.1):** Built specifically for legacy low-RAM hardware, featuring DOM virtualization, GPU texture recycling, multi-language internationalization (i18n), and Stremio Theater aesthetics.
 
 ---
 
