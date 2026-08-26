@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Stremio Modern LG</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0c0b11;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #fff;
+            overflow: hidden;
+        }
+        .splash-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+        .logo {
+            width: 140px;
+            height: 140px;
+            border-radius: 32px;
+            box-shadow: 0 12px 40px rgba(123, 91, 245, 0.4);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+        .status {
+            font-size: 22px;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 0.5px;
+        }
+        .error-box {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            max-width: 550px;
+            padding: 0 20px;
+            text-align: center;
+        }
+        .error-title {
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .error-desc {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 28px;
+            line-height: 1.5;
+        }
+        .btn-retry {
+            padding: 12px 32px;
+            font-size: 18px;
+            font-weight: 600;
+            background: #7b5bf5;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(123, 91, 245, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div id="splash" class="splash-container">
+        <img src="icon.png" alt="Stremio" class="logo" />
+        <div id="statusText" class="status">Iniciando Stremio...</div>
+    </div>
+
+    <div id="errorBox" class="error-box">
+        <div class="error-title">O serviço Stremio demorou para responder</div>
+        <div class="error-desc">Tente novamente. Se o problema persistir, certifique-se de reiniciar o aplicativo.</div>
+        <button class="btn-retry" onclick="location.reload()">Tentar Novamente</button>
+    </div>
+
+    <script>
+        var done = false;
+        function redirect() {
+            if (done) return;
+            done = true;
+            window.location.replace('http://127.0.0.1:8080/');
+        }
+
+        // 1. Luna Bridge Call
+        try {
+            var bridge = new PalmServiceBridge();
+            bridge.onservicecallback = function(response) {
+                try {
+                    var data = JSON.parse(response);
+                    if (data.ready) redirect();
+                } catch (_) {}
+            };
+            bridge.call('luna://io.strem.tv.server/start', '{}');
+        } catch (e) {}
+
+        // 2. Fast Active Polling (immediate redirect when port is ready)
+        function pollServer() {
+            if (done) return;
+            var img = new Image();
+            img.onload = redirect;
+            img.onerror = function() {
+                // If it responded with error or reached port, check again in 200ms
+                setTimeout(pollServer, 200);
+            };
+            img.src = 'http://127.0.0.1:8080/logo.png?t=' + Date.now();
+        }
+        pollServer();
+
+        // 3. Timeout fallback after 20s
+        setTimeout(function() {
+            if (done) return;
+            document.getElementById('splash').style.display = 'none';
+            document.getElementById('errorBox').style.display = 'flex';
+        }, 20000);
+    </script>
+</body>
+</html>

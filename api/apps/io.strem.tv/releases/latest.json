@@ -1,0 +1,14 @@
+{
+  "id": "io.strem.tv",
+  "version": "5.0.2",
+  "type": "web",
+  "title": "Stremio for webOS (2020-2025 / OLED)",
+  "appDescription": "High-performance Stremio client for modern LG webOS TVs (webOS 5.0+ / OLED C-Series) with Native Audio Track Fix, Turbo RAM Cache and ARM64 server.",
+  "iconUri": "https://stremiobrew.vercel.app/icon-modern.png",
+  "sourceUrl": "https://github.com/alebypegasus/stremiobrew",
+  "rootRequired": false,
+  "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv_5.0.2_all.ipk",
+  "ipkHash": {
+    "sha256": "977a385bf9f3fd32bf47453a77b4714d71100defafa6c7ca286bd0e594e25416"
+  }
+}

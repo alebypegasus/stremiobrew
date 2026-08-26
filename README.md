@@ -1,53 +1,55 @@
-# Stremio Lite LG
+# Stremiobrew — LG webOS Homebrew Channel Repository
 
-A community Stremio client for **rooted LG webOS TVs (webOS 4.x / Chromium 53)** — the pre-WebAssembly generation that the official Stremio app doesn't support.
-
-> ⚡ **Optimized Edition (v5.0.2):** Built specifically for legacy low-RAM hardware, featuring DOM virtualization, GPU texture recycling, multi-language internationalization (i18n), and Stremio Theater aesthetics.
+Repositório oficial para distribuição de clientes **Stremio** otimizados para Smart TVs **LG webOS** (de 2016 a 2025+), cobrindo desde webOS 3.0 até o mais moderno webOS 25 (incluindo LG OLED C5).
 
 ---
 
-## Features & Highlights
+## 📺 Visão Geral dos Aplicativos
 
-- **Stremio Theater UI & Aesthetics**: Clean top navigation (Search, Home, Discover, Library, Settings), dynamic Hero Banner with IMDb badges (★ rating, year, resolution), metadata and backdrop cross-fade.
-- **Ultra-Low RAM Footprint**: Off-screen image virtualization and thumbnail resolution capping prevent OOM crashes on webOS 4 (Chromium 53) TVs with 512MB RAM.
-- **Full Multi-Language Support (i18n)**:
-  - 🇧🇷 Português (Brasil)
-  - 🇵🇹 Português (Portugal)
-  - 🇺🇸 English
-  - 🇪🇸 Español
-  - 🇫🇷 Français
-  - 🇩🇪 Deutsch
-  - 🇮🇹 Italiano
-  - 🇷🇺 Русский
-  - 🇹🇷 Türkçe
-- **Catalog & Addon Discovery**: Search, Continue Watching with live progress bars, Series episode selection with thumbnails, and high-performance Streams drawer with quality tags (4K, 1080p, HDR, RD+, Torrent).
-- **Magic Remote & D-Pad Support**: Smooth focus management with zero input lag.
-- **Synchronized Library**: Full two-way sync with your official Stremio account (Library items, Continue Watching, Watched status).
+| Aplicativo | Compatibilidade | Arquitetura | ID do Pacote |
+| :--- | :--- | :--- | :--- |
+| **Stremio Modern LG** | **2020 a 2025+** (OLED C1..C5, QNED, webOS 5.0+) | ARM64 / 64-bit | `io.strem.tv` |
+| **Stremio Lite LG** | **2016 a 2019** (Séries B7/C8/C9, UK, UM, LK, webOS 3.x/4.x) | armv7 / 32-bit | `io.strem.tv.beta` |
 
 ---
 
-## Requirements
+## ✨ Recursos
 
-- A **rooted** LG TV with the **Homebrew Channel** installed.
-- **webOS 4.x** (Chromium 53), **32-bit ARM (armv7)**.
-- Internet connection, a **Stremio account**, and your **own addons** (a **debrid** service is strongly recommended for direct, instant playback).
+### 1. Stremio Modern (OLED & 4K Edition)
+- **Correção de Áudio Nativo**: Corrige o bug do app oficial da LG que sempre tocava a primeira faixa de áudio, respeitando o idioma preferido do seu perfil.
+- **Hardware Moderno**: Aceleração gráfica completa, WebAssembly e compatibilidade com 4K HDR e Dolby Vision.
+- **Binários ARM64**: FFmpeg e streaming server de alta performance integrados.
+
+### 2. Stremio Lite (Legacy Edition)
+- **Virtualização de Texturas (VRAM)**: Desmonta imagens fora da tela para evitar quedas por falta de memória em TVs com 512MB de RAM.
+- **Compatibilidade com Chromium 53**: Suporte completo a navegadores de gerações antigas.
+- **Multi-idioma (i18n)**: Português (BR/PT), Espanhol, Inglês, Francês, Alemão, Italiano e Russo.
 
 ---
 
-## Installation via Homebrew Channel
+## 🛠️ Como Adicionar o Repositório no Homebrew Channel
 
-1. Open the **Homebrew Channel** on your LG TV.
-2. Go to **Settings** → **Add repository**.
-3. Paste the repository URL:
-   ```
+1. Abra o **Homebrew Channel** na sua TV LG.
+2. Vá em **Settings** &rarr; **Repositories** &rarr; **Add repository**.
+3. Insira a URL do repositório:
+   ```text
    https://stremiobrew.vercel.app/apps.json
    ```
-4. Find **Stremio Lite LG** and click **Install**.
+4. Navegue pela lista de aplicativos, escolha o **Stremio Modern** (para TVs novas / OLED C5) ou **Stremio Lite** (para TVs antigas) e clique em **Install**.
 
 ---
 
-## Notes & Disclaimer
+## 📦 Build e Atualização
 
-- **You bring your own addons.** The app ships clean and hosts/indexes nothing — it only plays stream links returned by your installed addons and syncs with your Stremio account.
-- Bundles open-source **Node.js** and **ffmpeg** alongside the Stremio streaming server.
-- Not affiliated with or endorsed by Stremio; "Stremio" is used solely to describe compatibility.
+Para recompilar ambos os pacotes e sincronizar manifests e hashes SHA-256:
+
+```bash
+node build.js
+```
+
+---
+
+## 📄 Notas e Aviso Legal
+
+- **Traga seus próprios addons:** O aplicativo não hospeda nem distribui qualquer conteúdo por padrão.
+- Projeto comunitário de código aberto mantido por [alebypegasus/stremiobrew](https://github.com/alebypegasus/stremiobrew). Não afiliado ou endossado pela Smart Code OOD / Stremio oficial.
