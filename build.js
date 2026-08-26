@@ -5,7 +5,7 @@ const { execSync } = require('child_process');
 
 console.log('--- Starting Stremio Lite LG Build System ---');
 
-const VERSION = '5.0.1';
+const VERSION = '5.0.2';
 const IPK_NAME = `io.strem.tv.beta_${VERSION}_all.ipk`;
 
 // 1. Pack data.tar.gz from unpacked/

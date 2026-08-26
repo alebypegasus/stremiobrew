@@ -2311,7 +2311,7 @@ var BLANK_IMG = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAA
 function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-function xhrJson(u, cb, tmo){
+function xhrJson(u, cb, tmo, isRetry){
   var done = false;
   try {
     var x = new XMLHttpRequest();
@@ -2320,15 +2320,45 @@ function xhrJson(u, cb, tmo){
       if (x.readyState === 4 && !done){
         done = true;
         var j = null;
-        try { j = JSON.parse(x.responseText); } catch(e){}
+        if (x.status >= 200 && x.status < 400){
+          try { j = JSON.parse(x.responseText); } catch(e){}
+        }
+        if (!j && !isRetry && (u.indexOf('http://') === 0 || u.indexOf('https://') === 0) && u.indexOf('127.0.0.1') < 0){
+          xhrJson('/proxy?u=' + encodeURIComponent(u), cb, tmo, true);
+          return;
+        }
         cb(j);
+      }
+    };
+    x.onerror = function(){
+      if (!done){
+        done = true;
+        if (!isRetry && (u.indexOf('http://') === 0 || u.indexOf('https://') === 0) && u.indexOf('127.0.0.1') < 0){
+          xhrJson('/proxy?u=' + encodeURIComponent(u), cb, tmo, true);
+        } else {
+          cb(null);
+        }
       }
     };
     x.send();
     setTimeout(function(){
-      if (!done){ done = true; try { x.abort(); } catch(e){} cb(null); }
+      if (!done){
+        done = true;
+        try { x.abort(); } catch(e){}
+        if (!isRetry && (u.indexOf('http://') === 0 || u.indexOf('https://') === 0) && u.indexOf('127.0.0.1') < 0){
+          xhrJson('/proxy?u=' + encodeURIComponent(u), cb, tmo, true);
+        } else {
+          cb(null);
+        }
+      }
     }, tmo || 12000);
-  } catch(e) { cb(null); }
+  } catch(e) {
+    if (!isRetry && (u.indexOf('http://') === 0 || u.indexOf('https://') === 0) && u.indexOf('127.0.0.1') < 0){
+      xhrJson('/proxy?u=' + encodeURIComponent(u), cb, tmo, true);
+    } else {
+      cb(null);
+    }
+  }
 }
 
 function postJson(u, body, cb, tmo){
@@ -2345,6 +2375,7 @@ function postJson(u, body, cb, tmo){
         cb(j);
       }
     };
+    x.onerror = function(){ if (!done){ done = true; cb(null); } };
     x.send(JSON.stringify(body));
     setTimeout(function(){
       if (!done){ done = true; try { x.abort(); } catch(e){} cb(null); }
@@ -2383,7 +2414,10 @@ function bgSmall(it){
 function bgMid(it){
   var u = String(bgOf(it) || '');
   if (!u) return u;
-  return '/bgz?u=' + encodeURIComponent(u.replace(/(images\.metahub\.space\/background\/)[a-z]+\//, '$1medium/'));
+  if (u.indexOf('images.metahub.space') >= 0){
+    return u.replace(/(images\.metahub\.space\/background\/)[a-z]+\//, '$1medium/');
+  }
+  return '/bgz?u=' + encodeURIComponent(u);
 }
 
 var ICON = {
@@ -2527,7 +2561,7 @@ function homeCatalogs(){
         url: base + '/catalog/' + cat.type + '/' + encodeURIComponent(cat.id) + '.json',
         key: 'a' + i + '_' + c
       });
-      if (out.length >= 8) return out;
+      if (out.length >= 24) return out;
     }
   }
   return out;
@@ -2540,7 +2574,7 @@ function getCatalogUrl(url, key, type, cb){
     var metas = (j && j.metas) || [];
     if (!metas.length){ if (!cached) cb([], false); return; }
     var slim = [];
-    for (var i = 0; i < Math.min(metas.length, 14); i++){
+    for (var i = 0; i < Math.min(metas.length, 20); i++){
       var m = metas[i];
       slim.push({ id: m.id, type: m.type || type, name: m.name, poster: m.poster, background: m.background });
     }
@@ -2682,6 +2716,9 @@ function setFRow(row, idx){
 
 var bgCur = '', bgT = null, bgFlip = false;
 function setBg(u){
+  if (u && u.indexOf('images.metahub.space') >= 0){
+    u = u.replace(/(images\.metahub\.space\/background\/)[a-z]+\//, '$1medium/');
+  }
   if (u === bgCur) return;
   bgCur = u;
   if (bgT) clearTimeout(bgT);
@@ -2697,7 +2734,7 @@ function setBg(u){
       bgFlip = !bgFlip;
     };
     img.src = u;
-  }, 220);
+  }, 250);
 }
 
 /* =========================================================
@@ -2708,12 +2745,19 @@ function setRowLoaded(row, on){
   if (row._loaded === on && on !== true) return;
   row._loaded = on;
   var imgs = row.cardsEl.getElementsByTagName('img');
-  for (var i = imgs.length - 1; i >= 0; i--){
+  for (var i = 0; i < imgs.length; i++){
     var im = imgs[i];
     if (!on){
       if (im.src && im.src !== BLANK_IMG){ im._full = im.src; im.src = BLANK_IMG; }
     } else if (im._full){
-      im.src = im._full; im._full = null;
+      (function(targetImg, src, delay){
+        setTimeout(function(){
+          if (row._loaded && targetImg._full === src){
+            targetImg.src = src;
+            targetImg._full = null;
+          }
+        }, delay);
+      })(im, im._full, i * 25);
     }
   }
 }

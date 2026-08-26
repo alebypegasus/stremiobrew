@@ -939,15 +939,15 @@ function localProxy(u) { return 'http://127.0.0.1:' + PORT + '/proxy?u=' + encod
 var resolveCache = {}; // original debrid url -> { url: resolved-CDN-url, at: ts }
 function proxyStream(target, range, method, clientRes, orig, depth, triedFresh) {
   depth = depth || 0;
-  if (!target || depth > 6) { try { if (!clientRes.headersSent) clientRes.writeHead(502); clientRes.end(); } catch (e) {} return; }
+  if (!target || depth > 6) { try { if (!clientRes.headersSent) clientRes.writeHead(502, { 'Access-Control-Allow-Origin': '*' }); clientRes.end(); } catch (e) {} return; }
   var pu;
-  try { pu = urlmod.parse(target); } catch (e) { try { clientRes.writeHead(502); clientRes.end(); } catch (x) {} return; }
+  try { pu = urlmod.parse(target); } catch (e) { try { clientRes.writeHead(502, { 'Access-Control-Allow-Origin': '*' }); clientRes.end(); } catch (x) {} return; }
   var lib = pu.protocol === 'https:' ? https : http;
   var hdrs = { 'User-Agent': 'Stremio-TV/1.0', 'Accept': '*/*', 'Accept-Encoding': 'identity' };
   if (range) hdrs.Range = range;
   var opts = { protocol: pu.protocol, hostname: pu.hostname, port: pu.port, path: pu.path, method: method === 'HEAD' ? 'HEAD' : 'GET', headers: hdrs };
   var upReq;
-  try { upReq = lib.request(opts, onUp); } catch (e) { try { clientRes.writeHead(502); clientRes.end(); } catch (x) {} return; }
+  try { upReq = lib.request(opts, onUp); } catch (e) { try { clientRes.writeHead(502, { 'Access-Control-Allow-Origin': '*' }); clientRes.end(); } catch (x) {} return; }
   function onUp(up) {
     var sc = up.statusCode;
     if (sc >= 300 && sc < 400 && up.headers.location) {
@@ -962,7 +962,11 @@ function proxyStream(target, range, method, clientRes, orig, depth, triedFresh) 
       return proxyStream(orig, range, method, clientRes, orig, 0, true);
     }
     if (orig) resolveCache[orig] = { url: target, at: Date.now() }; // remember the working CDN url
-    var h = {};
+    var h = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+      'Access-Control-Allow-Headers': '*'
+    };
     ['content-type', 'content-length', 'content-range', 'accept-ranges', 'last-modified', 'etag'].forEach(function (k) {
       if (up.headers[k] != null) h[k] = up.headers[k];
     });
@@ -971,7 +975,7 @@ function proxyStream(target, range, method, clientRes, orig, depth, triedFresh) 
     up.pipe(clientRes);
     up.on('error', function () { try { clientRes.end(); } catch (e) {} });
   }
-  upReq.on('error', function () { try { if (!clientRes.headersSent) clientRes.writeHead(502); clientRes.end(); } catch (x) {} });
+  upReq.on('error', function () { try { if (!clientRes.headersSent) clientRes.writeHead(502, { 'Access-Control-Allow-Origin': '*' }); clientRes.end(); } catch (x) {} });
   upReq.setTimeout(20000, function () { try { upReq.abort(); } catch (e) {} });
   clientRes.on('close', function () { try { upReq.abort(); } catch (e) {} }); // ffmpeg drops the connection on every seek
   upReq.end();
@@ -1360,33 +1364,47 @@ function spriteGen(q, res) {
   spriteExtractNext();
   sendJson(res, { ok: true, buckets: buckets });
 }
-// ---- backdrop resizer: full-res art (1920x1080 = 8.3MB decoded) shrunk to 960x540
-// (2MB decoded) for the BROWSING backdrop — sharp enough upscaled, 4x lighter on the
-// decode cache that was thrashing during long sessions. LRU-cached per title.
-var bgzCache = {}, bgzOrder = [], bgzActive = 0;
+// ---- backdrop resizer / proxy: fetches optimized medium backdrop art and caches in memory
+// LRU-cached per title with 0 CPU overhead (no ffmpeg spawn).
+var bgzCache = {}, bgzOrder = [];
 function bgResize(q, res) {
   var u = q.u || '';
   if (!u) { res.writeHead(404); res.end(); return; }
-  var key = crypto.createHash('sha1').update(u).digest('hex').slice(0, 16);
-  if (bgzCache[key]) { res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'max-age=86400', 'Access-Control-Allow-Origin': '*' }); res.end(bgzCache[key]); return; }
-  if (bgzActive >= 2) { res.writeHead(204); res.end(); return; } // client falls back to /small
-  bgzActive++;
-  var args = ['-nostdin', '-i', localProxy(u), '-frames:v', '1', '-vf', 'scale=960:-2', '-q:v', '6', '-f', 'mjpeg', 'pipe:1'];
-  var chunks = [], done = false, pr;
-  function finish(ok) {
-    if (done) return; done = true; clearTimeout(to); bgzActive--;
-    var buf = Buffer.concat(chunks);
-    if (ok && buf.length > 2000) {
-      bgzCache[key] = buf; bgzOrder.push(key);
-      while (bgzOrder.length > 24) delete bgzCache[bgzOrder.shift()];
-      try { res.writeHead(200, { 'Content-Type': 'image/jpeg', 'Cache-Control': 'max-age=86400', 'Access-Control-Allow-Origin': '*' }); res.end(buf); } catch (e) {}
-    } else { try { res.writeHead(204); res.end(); } catch (e) {} }
+  if (u.indexOf('images.metahub.space') >= 0) {
+    u = u.replace(/(images\.metahub\.space\/background\/)[a-z]+\//, '$1medium/');
   }
-  try { pr = spawn(FFMPEG, args); } catch (e) { bgzActive--; res.writeHead(204); res.end(); return; }
-  var to = setTimeout(function () { try { pr.kill('SIGKILL'); } catch (e) {} finish(false); }, 9000);
-  pr.stdout.on('data', function (d) { chunks.push(d); });
-  pr.on('error', function () { finish(false); });
-  pr.on('close', function (code) { finish(code === 0); });
+  var key = crypto.createHash('sha1').update(u).digest('hex').slice(0, 16);
+  if (bgzCache[key]) {
+    res.writeHead(200, {
+      'Content-Type': 'image/jpeg',
+      'Cache-Control': 'public, max-age=86400',
+      'Access-Control-Allow-Origin': '*'
+    });
+    res.end(bgzCache[key]);
+    return;
+  }
+  fetchUrl(u, function (buf) {
+    if (buf && buf.length > 500) {
+      bgzCache[key] = buf;
+      bgzOrder.push(key);
+      while (bgzOrder.length > 32) {
+        delete bgzCache[bgzOrder.shift()];
+      }
+      try {
+        res.writeHead(200, {
+          'Content-Type': 'image/jpeg',
+          'Cache-Control': 'public, max-age=86400',
+          'Access-Control-Allow-Origin': '*'
+        });
+        res.end(buf);
+      } catch (e) {}
+    } else {
+      try {
+        res.writeHead(302, { 'Location': u, 'Access-Control-Allow-Origin': '*' });
+        res.end();
+      } catch (e) {}
+    }
+  });
 }
 
 function grabFrame(q, res) {
@@ -1411,6 +1429,15 @@ function grabFrame(q, res) {
 }
 
 http.createServer(function (req, res) {
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, HEAD, OPTIONS',
+      'Access-Control-Allow-Headers': '*'
+    });
+    res.end();
+    return;
+  }
   var p = req.url.split('?')[0];
   var q = urlmod.parse(req.url, true).query;
   if (p === '/ping') {
