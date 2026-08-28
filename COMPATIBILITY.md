@@ -30,7 +30,11 @@ Ao adicionar o repositório `https://stremiobrew.vercel.app/apps.json` nas confi
 - **Audio Language Selection Patch:** No app oficial da LG, o player ignora a preferência de áudio da conta Stremio e sempre seleciona a primeira faixa. O patch intercepta o pipeline de mídia nativo do webOS e seleciona automaticamente o idioma correto configurado na conta.
 - **FFmpeg:** Binários ARM64 estáticos v7.0.2 com suporte a remux HLS.
 
-### 2. Stremio Lite (`io.strem.tv.beta`)
-- **Origem:** Otimização customizada para Chromium 53.
-- **DOM Virtualization:** Desmonta texturas fora da tela e reduz em até 120MB o consumo de VRAM da GPU Mali/MStar.
-- **Node Server:** Binário 32-bit armv7 adaptado para webOS 4.x.
+### 2. Stremio Lite & Ultra Lite (`io.strem.tv.beta`)
+- **Origem:** Otimização customizada para Chromium 53 e TVs com pouca memória (512MB RAM).
+- **Perfis de Desempenho (Configurações → Modo de Desempenho):**
+  - **Versão A (Lite):** Modo visual equilibrado com logotipos HD no Hero, pôsteres otimizados e ambient background.
+  - **Versão C (Ultra Lite):** Modo extremo de economia de RAM (<30MB VRAM). Remove texturas de fundo pesadas na GPU, títulos em texto puro, miniaturas de episódios desativadas. Ideal para eliminar reboots causados pelo OOM killer da TV.
+- **Trailers Nativos:** Substituição de `iframe` pesado do YouTube por stream de vídeo MP4 nativo acelerado por hardware via endpoint `/yt`.
+- **Busca e Teclas Corrigidas:** Backspace permitido em caixas de pesquisa sem sair do app, debounce contra duplo toque no botão Voltar.
+- **Node Server:** Binário 32-bit armv7 adaptado para webOS 3.x/4.x sem buffering de imagens em heap de memória.

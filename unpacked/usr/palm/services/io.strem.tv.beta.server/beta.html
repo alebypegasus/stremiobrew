@@ -194,6 +194,8 @@ body.trailer #dWrap { opacity: .15; }
 .ep .o { margin-top: 6px; font-size: 21px; color: rgba(255,255,255,.7); max-height: 58px; overflow: hidden; line-height: 1.35; }
 .ep.f { background: rgba(255,255,255,.14); box-shadow: inset 0 0 0 3px #fff; }
 .ep.w .t { color: #a98fff; }
+.ep.nothumb { padding: 18px 24px; }
+.ep.nothumb .th { display: none !important; }
 
 /* Streams Drawer Overlay */
 #streams {
@@ -319,16 +321,17 @@ body.trailer #dWrap { opacity: .15; }
 
 /* Toast & Boot */
 #toast {
-  position: fixed; left: 50%; top: 6%; -webkit-transform: translateX(-50%); transform: translateX(-50%);
-  background: rgba(20,18,30,.92); font-size: 24px; font-weight: 600; padding: 12px 28px; border-radius: 26px;
-  opacity: 0; transition: opacity .25s; z-index: 100; pointer-events: none;
+  position: fixed; left: 50%; bottom: 44px; -webkit-transform: translateX(-50%); transform: translateX(-50%);
+  background: rgba(20,18,30,.92); color: #fff; font-size: 23px; font-weight: 600; padding: 14px 34px; border-radius: 30px;
+  opacity: 0; transition: opacity .25s ease; z-index: 100; pointer-events: none; box-shadow: 0 8px 30px rgba(0,0,0,.6);
 }
+#toast.show { opacity: 1; }
 #boot {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0e0d14; z-index: 200;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #0c0b11; z-index: 200;
   display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; -webkit-justify-content: center; justify-content: center;
 }
-#boot .lg { width: 110px; height: 110px; animation: bb 2s ease-in-out infinite; }
-@keyframes bb { 0%,100%{opacity:.72;transform:scale(1)} 50%{opacity:1;transform:scale(1.05)} }
+#boot img.lg { width: 140px; height: 140px; border-radius: 32px; animation: b 2.2s ease-in-out infinite; }
+@keyframes b { 0%,100%{opacity:.82;transform:scale(1)} 50%{opacity:1;transform:scale(1.06)} }
 #logobg { position: fixed; top: 0; left: 0; right: 0; height: 74%; background: url(/logo.png) center 32%/180px no-repeat; opacity: 0; transition: opacity .5s ease; z-index: 0; pointer-events: none; }
 #logobg.on { opacity: .08; }
 .anim-in { animation: fadeup .35s ease; }
@@ -415,7 +418,8 @@ body.trailer #dWrap { opacity: .15; }
 
 <div id="trailerModal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:900;display:none;">
   <div style="position:absolute;top:20px;right:30px;font-size:20px;font-weight:600;color:rgba(255,255,255,0.9);z-index:901;background:rgba(20,18,30,0.88);padding:8px 22px;border-radius:20px;box-shadow:0 4px 14px rgba(0,0,0,0.6);cursor:pointer;" onclick="closeTrailer()">Pressione BACK / ESC para fechar</div>
-  <iframe id="trailerFrame" style="width:100%;height:100%;border:0;" allow="autoplay; fullscreen; encrypted-media" allowfullscreen></iframe>
+  <div id="trailerMsg" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:28px;color:#fff;font-weight:600;text-align:center;">Carregando trailer…</div>
+  <video id="trailerVideo" style="width:100%;height:100%;object-fit:contain;background:#000;display:none;" controls autoplay playsinline></video>
 </div>
 
 <script>
@@ -449,6 +453,12 @@ var I18N = {
     "Password": "Password",
     "Sign in": "Sign in",
     "Streams": "Streams",
+    "Performance Mode": "Performance Mode",
+    "Mode": "Mode",
+    "Ultra Lite (Max RAM Free)": "Ultra Lite (Max RAM Free)",
+    "Lite (Balanced)": "Lite (Balanced)",
+    "Loading trailer…": "Loading trailer…",
+    "Press Back again to exit": "Press Back again to exit",
     "UI Language": "UI Language",
     "Language": "Language",
     "Subtitles": "Subtitles",
@@ -548,6 +558,12 @@ var I18N = {
     "Password": "Senha",
     "Sign in": "Entrar",
     "Streams": "Links / Fontes",
+    "Performance Mode": "Modo de Desempenho",
+    "Mode": "Modo",
+    "Ultra Lite (Max RAM Free)": "Ultra Lite (Máxima Memória)",
+    "Lite (Balanced)": "Lite (Visual Equilibrado)",
+    "Loading trailer…": "Carregando trailer…",
+    "Press Back again to exit": "Pressione Voltar novamente para sair",
     "UI Language": "Idioma da Interface",
     "Language": "Idioma",
     "Subtitles": "Legendas",
@@ -2714,8 +2730,18 @@ function setFRow(row, idx){
   row._f = idx >= 0 ? idx : null;
 }
 
+var PERF_MODE = lsRaw('perfMode', 'ultra');
 var bgCur = '', bgT = null, bgFlip = false;
 function setBg(u){
+  if (PERF_MODE === 'ultra'){
+    // Modo Ultra Lite: zero texturas pesadas de fundo decodificadas na GPU!
+    if (bgCur){
+      bgCur = '';
+      $('bg').className = ''; $('bg2').className = '';
+      $('bg').style.backgroundImage = 'none'; $('bg2').style.backgroundImage = 'none';
+    }
+    return;
+  }
   if (u && u.indexOf('images.metahub.space') >= 0){
     u = u.replace(/(images\.metahub\.space\/background\/)[a-z]+\//, '$1medium/');
   }
@@ -2723,7 +2749,11 @@ function setBg(u){
   bgCur = u;
   if (bgT) clearTimeout(bgT);
   bgT = setTimeout(function(){
-    if (!u){ $('bg').className = ''; $('bg2').className = ''; return; }
+    if (!u){
+      $('bg').className = ''; $('bg2').className = '';
+      $('bg').style.backgroundImage = 'none'; $('bg2').style.backgroundImage = 'none';
+      return;
+    }
     var img = new Image();
     img.onload = function(){
       if (bgCur !== u || !img.naturalWidth) return;
@@ -2731,10 +2761,11 @@ function setBg(u){
       showEl.style.backgroundImage = 'url("' + u + '")';
       showEl.className = 'on';
       hideEl.className = '';
+      hideEl.style.backgroundImage = 'none'; // Libera textura VRAM anterior imediatamente
       bgFlip = !bgFlip;
     };
     img.src = u;
-  }, 250);
+  }, 450);
 }
 
 /* =========================================================
@@ -2942,12 +2973,23 @@ function confirmAppExit(){
   _exitToastTimer = setTimeout(function(){ _exitArmed = false; }, 3000);
 }
 
+var _lastBackTime = 0;
 function goBackScr(){
+  var now = Date.now();
+  if (now - _lastBackTime < 250) return;
+  _lastBackTime = now;
+
   if (window._trailerOpen){ closeTrailer(); return; }
   if (SCR === 'login'){ try { window.close(); } catch(e){} return; }
   if (cwMenu.open){ cwMenu.close(); return; }
   if (streamsUI.open){ streamsUI.close(); return; }
-  if (SCR === 'detail' && detail.zone === 'eps'){ detail.zone = 'seasons'; detail.paint(); return; }
+  if (SCR === 'detail'){
+    if (detail.zone === 'eps'){ detail.zone = 'seasons'; detail.paint(); return; }
+    if (detail.zone === 'seasons'){ detail.zone = 'btns'; detail.paint(); return; }
+  }
+  if (SCR === 'search' && search.zone === 'rows'){
+    search.zone = 'input'; search.paint(); return;
+  }
   if (topNav.active){
     if (SCR !== 'home'){ topNav.idx = 1; goScr('home', null, true); topNav.active = false; }
     else { confirmAppExit(); }
@@ -3101,7 +3143,7 @@ function makeBoard(loader){
       if (!it) return;
       var lg = $('heroLogo'), tt = $('heroTitle'), bgEl = $('heroBadges');
       var self = this;
-      if (isImdb(it.id)){
+      if (PERF_MODE === 'lite' && isImdb(it.id)){
         var lu = 'https://images.metahub.space/logo/medium/' + it.id + '/img';
         var im = new Image();
         im.onload = function(){
@@ -3349,16 +3391,19 @@ var detail = {
     try {
     $('dTitle').textContent = m.name || '';
     var lg = $('dLogo');
-    if (m.logo){
+    if (PERF_MODE === 'lite' && m.logo){
       var im = new Image();
       im.onload = function(){ lg.src = m.logo; lg.style.display = 'block'; $('dTitle').style.display = 'none'; };
       im.src = m.logo;
-    } else { $('dTitle').style.display = 'block'; }
+    } else {
+      $('dTitle').style.display = 'block';
+      lg.style.display = 'none';
+    }
 
     if (m.poster){
       var pi = new Image();
       pi.onload = function(){ if (detail.meta === m && detail.zone !== 'eps'){ $('dPoster').src = m.poster; $('dPoster').style.display = 'block'; } };
-      pi.src = m.poster;
+      pi.src = posterOf({ id: this.id, poster: m.poster });
     }
 
     var bits = [];
@@ -3482,13 +3527,16 @@ var detail = {
     var se = this.seasons[this.seasonIdx];
     var host = $('dEpsInner'); host.innerHTML = ''; this.epEls = []; this.eps = se ? se.eps : [];
     var self = this;
+    var showThumbs = (PERF_MODE === 'lite');
     for (var i = 0; i < this.eps.length; i++){
       (function(idx){
         var v = self.eps[idx];
-        var d = document.createElement('div'); d.className = 'ep';
-        var th = document.createElement('div'); th.className = 'th';
-        if (v.thumbnail){ var im = new Image(); im.src = v.thumbnail; th.appendChild(im); }
-        d.appendChild(th);
+        var d = document.createElement('div'); d.className = 'ep' + (showThumbs ? '' : ' nothumb');
+        if (showThumbs){
+          var th = document.createElement('div'); th.className = 'th';
+          if (v.thumbnail){ var im = new Image(); im.src = v.thumbnail; th.appendChild(im); }
+          d.appendChild(th);
+        }
         var bd = document.createElement('div'); bd.className = 'bd';
         var tt = document.createElement('div'); tt.className = 't';
         tt.textContent = (v.episode || v.number || idx + 1) + '. ' + (v.name || v.title || (t('Episode ') + (v.episode || idx + 1)));
@@ -3735,9 +3783,16 @@ var search = {
         var v = $('sBox').value;
         if (v !== _lastVal){
           _lastVal = v;
+          if (self._debounce) clearTimeout(self._debounce);
           if (v.trim().length >= 2){
-            if (self._debounce) clearTimeout(self._debounce);
-            self._debounce = setTimeout(function(){ self.run(v); }, 450);
+            self._debounce = setTimeout(function(){ self.run(v); }, 400);
+          } else {
+            self.q = '';
+            $('sRows').innerHTML = '';
+            self.rows = [];
+            self.rowIdx = 0;
+            $('sHint').textContent = t('Press OK to type, Down for results');
+            self.paint();
           }
         }
       }
@@ -3761,7 +3816,7 @@ var search = {
       }, true);
     }
   },
-  enter: function(){ this.wire(); this.zone = 'input'; this.paint(); $('sBox').placeholder = t('Search movies & series'); $('sHint').textContent = t('Press OK to type, Down for results'); },
+  enter: function(){ this.wire(); this.zone = 'input'; this.paint(); $('sBox').placeholder = t('Search movies & series'); $('sHint').textContent = this.rows.length ? '' : t('Press OK to type, Down for results'); },
   enterInput: function(){ this.zone = 'input'; this.paint(); $('sBox').focus(); },
   run: function(query){
     query = String(query || '').replace(/^\s+|\s+$/g, '');
@@ -3810,7 +3865,10 @@ var search = {
       var fit = frow && frow.items[frow.col];
       $('logobg').className = '';
       if (fit) setBg(bgMid(fit));
-    } else updateLogoBg();
+    } else {
+      updateLogoBg();
+      setBg('');
+    }
   },
   key: function(k){
     if (this.zone === 'input'){
@@ -3886,6 +3944,11 @@ var STREAM_OPTS = [
   ['4k', '4K Ultra HD']
 ];
 
+var PERF_OPTS = [
+  ['ultra', 'Ultra Lite (Máxima Memória)'],
+  ['lite', 'Lite (Visual Equilibrado)']
+];
+
 var settings = {
   idx: 0, els: [], defs: [], fdefs: [],
   enter: function(){
@@ -3899,6 +3962,8 @@ var settings = {
     $('setAcct').getElementsByClassName('pl')[0].textContent = prem;
 
     this.defs = [
+      { head: t('Performance Mode') },
+      { k: 'perfMode', lb: t('Mode'), opts: PERF_OPTS, d: 'ultra' },
       { head: t('UI Language') },
       { k: 'uiLang', lb: t('Language'), opts: UI_LANG_OPTS, d: 'pt-BR' },
       { head: t('Subtitles') },
@@ -3965,6 +4030,17 @@ var settings = {
     for (var i = 0; i < def.opts.length; i++) if (def.opts[i][0] === cur) ci = i;
     ci = (ci + dir + def.opts.length) % def.opts.length;
     lsRawSet(def.k, def.opts[ci][0]);
+    if (def.k === 'perfMode'){
+      PERF_MODE = def.opts[ci][0];
+      setBg('');
+      invalidateBoards();
+      var keepIdx = this.idx;
+      this.enter();
+      this.idx = keepIdx;
+      this.paint();
+      toast(t('Performance Mode') + ': ' + def.opts[ci][1]);
+      return;
+    }
     if (def.k === 'uiLang'){
       UI_LANG = def.opts[ci][0];
       paintChips();
@@ -4045,20 +4121,35 @@ window._trailerOpen = false;
 function ytPlay(tcode){
   if (!tcode){ toast(t('Trailer unavailable')); return; }
   var modal = $('trailerModal');
-  var frame = $('trailerFrame');
-  if (modal && frame){
+  var vidEl = $('trailerVideo');
+  var msgEl = $('trailerMsg');
+  if (modal && vidEl){
     modal.style.display = 'block';
-    frame.src = 'https://www.youtube-nocookie.com/embed/' + encodeURIComponent(tcode) + '?autoplay=1&controls=1&rel=0&modestbranding=1&enablejsapi=1';
+    if (msgEl){ msgEl.style.display = 'block'; msgEl.textContent = t('Loading trailer…'); }
+    vidEl.style.display = 'none';
     window._trailerOpen = true;
     toast(t('Trailer'));
+
+    xhrJson('/yt?v=' + encodeURIComponent(tcode), function(j){
+      if (!window._trailerOpen) return;
+      if (j && j.url){
+        if (msgEl) msgEl.style.display = 'none';
+        vidEl.style.display = 'block';
+        vidEl.src = j.url;
+        try { vidEl.play(); } catch(e){}
+      } else {
+        if (msgEl) msgEl.textContent = t('Trailer unavailable');
+        setTimeout(function(){ if (window._trailerOpen) closeTrailer(); }, 2200);
+      }
+    }, 8000);
   }
 }
 function closeTrailer(){
   var modal = $('trailerModal');
-  var frame = $('trailerFrame');
-  if (modal && frame){
+  var vidEl = $('trailerVideo');
+  if (modal && vidEl){
+    try { vidEl.pause(); vidEl.src = ''; } catch(e){}
     modal.style.display = 'none';
-    frame.src = '';
     window._trailerOpen = false;
   }
 }
@@ -4220,11 +4311,13 @@ document.addEventListener('keydown', function(e){
     return;
   }
   if (a === $('sBox') || a === $('lgEmail') || a === $('lgPass')){
-    if (k === 461 || k === 27 || k === 8){
+    if (k === 461 || k === 27){
       e.preventDefault(); e.stopPropagation();
       a.blur();
+      if (SCR === 'search') search.paint();
       return;
     }
+    // Permite que o Backspace (keyCode === 8) funcione normalmente apagando texto
     return;
   }
   if (k === 461 || k === 8 || k === 27){

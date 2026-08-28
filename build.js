@@ -101,8 +101,8 @@ const legacyManifest = {
   id: LEGACY_ID,
   version: LEGACY_VERSION,
   type: 'web',
-  title: 'Stremio Lite LG (2016-2019)',
-  appDescription: 'Stremio client for legacy rooted LG webOS 3.x/4.x TVs (Chromium 53). GPU texture virtualization, low RAM/VRAM footprint, multi-language (i18n).',
+  title: 'Stremio Lite & Ultra Lite LG (2016-2019)',
+  appDescription: 'Stremio client for legacy rooted LG webOS 3.x/4.x TVs (Chromium 53). Includes Versão A (Lite) & Versão C (Ultra Lite) performance modes with extreme RAM savings, hardware video trailers, and fixed back/search navigation.',
   iconUri: `${BASE_URL}/icon-legacy.png`,
   sourceUrl: 'https://github.com/alebypegasus/stremiobrew',
   rootRequired: true,
@@ -135,9 +135,16 @@ const legacyDescriptionHtml = `<div style="font-family:sans-serif;color:#e5e7eb;
   <img src="${BASE_URL}/preview_lite.jpg" alt="Stremio Lite LG Legacy" style="width:100%;max-width:720px;border-radius:12px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,0,0,0.6);" />
   
   <!-- ENGLISH -->
-  <h2 style="color:#f59e0b;margin-top:0;font-size:1.35rem;">🇺🇸 Stremio Lite LG — Legacy Low-RAM Edition (v5.0.2)</h2>
+  <h2 style="color:#f59e0b;margin-top:0;font-size:1.35rem;">🇺🇸 Stremio Lite & Ultra Lite LG — Legacy Low-RAM Edition (v5.0.2)</h2>
   <p>Ultra-lightweight Stremio client designed for legacy <b>rooted</b> LG Smart TVs (webOS 3.x & 4.x / 2016–2019) with Chromium 53 engine and limited RAM (~512MB–1GB).</p>
   
+  <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">⚡ Dual Performance Profiles:</h3>
+  <ul>
+    <li><b>Versão A — Stremio Lite (Balanced):</b> High-definition logos in Hero banner, ambient background, downscaled poster textures.</li>
+    <li><b>Versão C — Stremio Ultra Lite (Maximum Memory Free):</b> Zero background textures on GPU, pure text logos, text-based episode lists. Ideal for 512MB RAM TVs (prevents TV reboots / OOM crashes).</li>
+    <li><i>Switch instantly in Settings → Performance Mode!</i></li>
+  </ul>
+
   <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">📺 Hardware Compatibility:</h3>
   <ul>
     <li><b>2018–2019 Models:</b> UK, UM, LK, SK, SM, OLED B8, C8, B9, C9 (webOS 4.x)</li>
@@ -145,23 +152,27 @@ const legacyDescriptionHtml = `<div style="font-family:sans-serif;color:#e5e7eb;
     <li><b>Requirement:</b> Rooted LG TV with <b>Homebrew Channel</b> installed.</li>
   </ul>
 
-  <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">⚡ Architecture & Memory Optimizations:</h3>
+  <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">🛠️ Key Fixes & Features:</h3>
   <ul>
-    <li><b>GPU Texture Recycling:</b> Unmounts off-screen posters freeing up to 120MB of VRAM, preventing out-of-memory crashes on Chromium 53.</li>
-    <li><b>Metahub Proxy Downscaling:</b> Automatically loads downscaled poster textures for low-RAM stability.</li>
-    <li><b>Multi-Language Support (i18n):</b> English, Portuguese (BR/PT), Spanish, French, German, Italian, Russian, Turkish.</li>
-    <li><b>32-bit ARM Binaries:</b> Node.js and FFmpeg binaries built for armv7.</li>
+    <li><b>Native Video Trailers:</b> Hardware-accelerated MP4 player replaces memory-heavy YouTube iframe.</li>
+    <li><b>Fixed Back & Search Navigation:</b> Backspace key properly deletes text without crashing or closing the app; double-back event debounced.</li>
+    <li><b>Zero Memory Buffers:</b> Node.js local proxy avoids RAM buffer hoarding and background CPU spikes.</li>
   </ul>
 
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:24px 0;" />
 
   <!-- PORTUGUÊS -->
-  <h2 style="color:#f59e0b;font-size:1.25rem;">🇧🇷 Português — Stremio Lite LG (v5.0.2)</h2>
+  <h2 style="color:#f59e0b;font-size:1.25rem;">🇧🇷 Português — Stremio Lite & Ultra Lite LG (v5.0.2)</h2>
   <p>Edição super leve para TVs LG clássicas com root (webOS 3.x e 4.x / 2016–2019).</p>
   <ul>
-    <li><b>Virtualização de Texturas GPU:</b> Evita travamentos por falta de memória RAM/VRAM no Chromium 53.</li>
-    <li><b>Multi-idioma Completo:</b> Português (Brasil/Portugal), Espanhol, Inglês, Francês e mais.</li>
-    <li><b>Navegação Stremio Theater:</b> Interface fluida com Magic Remote e D-Pad.</li>
+    <li><b>Dois Modos de Desempenho:</b>
+      <ul>
+        <li><b>Versão A (Lite):</b> Visual equilibrado com logotipos HD no topo e pôsteres otimizados.</li>
+        <li><b>Versão C (Ultra Lite):</b> Modo extremo de economia de RAM (&lt;30MB VRAM), sem texturas pesadas na GPU para TVs de 512MB que antes reiniciavam.</li>
+      </ul>
+    </li>
+    <li><b>Trailers Nativos:</b> Player de vídeo HTML5 acelerado por hardware sem travar a TV.</li>
+    <li><b>Busca e Tecla Voltar Corrigidas:</b> Digitação e remoção de caracteres sem fechar o app, retorno seguro por camadas.</li>
   </ul>
 
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:24px 0;" />

@@ -1317,94 +1317,20 @@ function probeInfo(u, res) {
 // thumbnails ONE AT A TIME in the background; /frame snaps the seek target to the nearest
 // already-extracted bucket and serves it INSTANTLY (204 while that region isn't ready yet).
 // The header/Cues are fetched once by the first seek, so each extra thumb is cheap.
-var SPRITE_N = 60;
-var spriteJob = null; // { key, u, buckets:[t...], frames:{i:buf}, queue:[i...], act, prs:[], done }
-function spriteKeyOf(u) { return crypto.createHash('sha1').update(String(u)).digest('hex').slice(0, 16); }
-function spriteExtractNext() {
-  var job = spriteJob;
-  if (!job) return;
-  if (!job.queue.length) { if (!job.act) { job.done = true; console.log('[sprite] done ' + Object.keys(job.frames).length + '/' + job.buckets.length); } return; }
-  while (job.act < 2 && job.queue.length) spriteSpawnOne(job); // 2 in flight: extraction is mostly network-wait
-}
-function spriteSpawnOne(job) {
-  var idx = job.queue.shift(), t = job.buckets[idx];
-  job.act++;
-  var args = ['-nostdin', '-probesize', '1500000', '-analyzeduration', '1500000', '-ss', String(t), '-noaccurate_seek', '-i', localProxy(job.u), '-an', '-frames:v', '1', '-vf', 'scale=384:-2', '-q:v', '5', '-f', 'mjpeg', 'pipe:1'];
-  var chunks = [], pr, closed = false;
-  try { pr = spawn(FFMPEG, args); } catch (e) { job.act--; return; }
-  job.prs.push(pr);
-  var to = setTimeout(function () { try { pr.kill('SIGKILL'); } catch (e) {} }, 12000);
-  pr.stdout.on('data', function (d) { chunks.push(d); });
-  function step() { if (closed) return; closed = true; clearTimeout(to);
-    var pi = job.prs.indexOf(pr); if (pi >= 0) job.prs.splice(pi, 1);
-    if (spriteJob !== job) return;
-    var buf = Buffer.concat(chunks); if (buf.length > 500) job.frames[idx] = buf;
-    job.act--; setTimeout(spriteExtractNext, 40); }
-  pr.on('error', step);
-  pr.on('close', step);
-}
-// coarse-first order: every 6th bucket, then every 3rd, then the rest -> the WHOLE movie
-// gets rough coverage in the first ~10 extractions instead of baking left-to-right.
-function spriteOrder(n) {
-  var out = [], seen = {}, strides = [6, 3, 1];
-  for (var s = 0; s < strides.length; s++) for (var i = 0; i < n; i += strides[s]) if (!seen[i]) { seen[i] = 1; out.push(i); }
-  return out;
-}
 function spriteGen(q, res) {
-  var u = q.u || '', dur = Math.floor(parseFloat(q.dur || '0') || 0);
-  if (!u || dur < 30) { sendJson(res, { ok: false }); return; }
-  var key = spriteKeyOf(u);
-  if (spriteJob && spriteJob.key === key) { sendJson(res, { ok: true, buckets: spriteJob.buckets, done: spriteJob.done }); return; }
-  if (spriteJob && spriteJob.prs) { for (var kp = 0; kp < spriteJob.prs.length; kp++) { try { spriteJob.prs[kp].kill('SIGKILL'); } catch (e) {} } }
-  var n = Math.min(SPRITE_N, Math.max(10, Math.floor(dur / 20))); // ~1/20s, capped at 60
-  var buckets = [];
-  for (var i = 0; i < n; i++) buckets.push(Math.floor(dur * (i + 0.5) / n));
-  spriteJob = { key: key, u: u, buckets: buckets, frames: {}, queue: spriteOrder(n), act: 0, prs: [], done: false };
-  console.log('[sprite] start n=' + n + ' dur=' + dur);
-  spriteExtractNext();
-  sendJson(res, { ok: true, buckets: buckets });
+  // Desativado no cliente low-RAM para evitar picos de CPU e estouro de memória (OOM)
+  sendJson(res, { ok: false });
 }
-// ---- backdrop resizer / proxy: fetches optimized medium backdrop art and caches in memory
-// LRU-cached per title with 0 CPU overhead (no ffmpeg spawn).
-var bgzCache = {}, bgzOrder = [];
+
 function bgResize(q, res) {
   var u = q.u || '';
   if (!u) { res.writeHead(404); res.end(); return; }
   if (u.indexOf('images.metahub.space') >= 0) {
     u = u.replace(/(images\.metahub\.space\/background\/)[a-z]+\//, '$1medium/');
   }
-  var key = crypto.createHash('sha1').update(u).digest('hex').slice(0, 16);
-  if (bgzCache[key]) {
-    res.writeHead(200, {
-      'Content-Type': 'image/jpeg',
-      'Cache-Control': 'public, max-age=86400',
-      'Access-Control-Allow-Origin': '*'
-    });
-    res.end(bgzCache[key]);
-    return;
-  }
-  fetchUrl(u, function (buf) {
-    if (buf && buf.length > 500) {
-      bgzCache[key] = buf;
-      bgzOrder.push(key);
-      while (bgzOrder.length > 32) {
-        delete bgzCache[bgzOrder.shift()];
-      }
-      try {
-        res.writeHead(200, {
-          'Content-Type': 'image/jpeg',
-          'Cache-Control': 'public, max-age=86400',
-          'Access-Control-Allow-Origin': '*'
-        });
-        res.end(buf);
-      } catch (e) {}
-    } else {
-      try {
-        res.writeHead(302, { 'Location': u, 'Access-Control-Allow-Origin': '*' });
-        res.end();
-      } catch (e) {}
-    }
-  });
+  // Redirecionamento 302 direto: sem armazenar buffers de imagens na memória RAM do Node
+  res.writeHead(302, { 'Location': u, 'Access-Control-Allow-Origin': '*' });
+  res.end();
 }
 
 function grabFrame(q, res) {

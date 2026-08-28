@@ -9,7 +9,7 @@ Repositório oficial para distribuição de clientes **Stremio** otimizados para
 | Aplicativo | Compatibilidade | Arquitetura | ID do Pacote |
 | :--- | :--- | :--- | :--- |
 | **Stremio Modern LG** | **2020 a 2025+** (OLED C1..C5, QNED, webOS 5.0+) | ARM64 / 64-bit | `io.strem.tv` |
-| **Stremio Lite LG** | **2016 a 2019** (Séries B7/C8/C9, UK, UM, LK, webOS 3.x/4.x) | armv7 / 32-bit | `io.strem.tv.beta` |
+| **Stremio Lite & Ultra Lite** | **2016 a 2019** (Séries B7/C8/C9, UK, UM, LK, webOS 3.x/4.x) | armv7 / 32-bit | `io.strem.tv.beta` |
 
 ---
 
@@ -20,8 +20,12 @@ Repositório oficial para distribuição de clientes **Stremio** otimizados para
 - **Hardware Moderno**: Aceleração gráfica completa, WebAssembly e compatibilidade com 4K HDR e Dolby Vision.
 - **Binários ARM64**: FFmpeg e streaming server de alta performance integrados.
 
-### 2. Stremio Lite (Legacy Edition)
-- **Virtualização de Texturas (VRAM)**: Desmonta imagens fora da tela para evitar quedas por falta de memória em TVs com 512MB de RAM.
+### 2. Stremio Lite & Ultra Lite (Legacy Edition)
+- **Dois Modos de Desempenho (Configurações → Modo de Desempenho)**:
+  - **Versão A (Lite)**: Visual equilibrado, ambient background, logotipos HD nos destaques e pôsteres compactos.
+  - **Versão C (Ultra Lite)**: Máxima economia de RAM (<30MB VRAM). Remove texturas de fundo pesadas na GPU, elimina miniaturas de episódios e evita reboots de TV causados por estouro de memória (OOM).
+- **Player de Trailers Nativo**: Execução de trailers MP4 leves acelerados por hardware sem travamento do YouTube.
+- **Busca e Teclado Otimizados**: Correção do bug da tecla apagar (Backspace) e debounce no botão Voltar.
 - **Compatibilidade com Chromium 53**: Suporte completo a navegadores de gerações antigas.
 - **Multi-idioma (i18n)**: Português (BR/PT), Espanhol, Inglês, Francês, Alemão, Italiano e Russo.
 
