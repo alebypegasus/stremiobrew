@@ -1,14 +1,14 @@
 {
   "id": "io.strem.tv.beta",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "type": "web",
   "title": "Stremio Lite & Ultra Lite LG (2016-2019)",
   "appDescription": "Stremio client for legacy rooted LG webOS 3.x/4.x TVs (Chromium 53). Includes Versão A (Lite) & Versão C (Ultra Lite) performance modes with extreme RAM savings, hardware video trailers, and fixed back/search navigation.",
   "iconUri": "https://stremiobrew.vercel.app/icon-legacy.png",
   "sourceUrl": "https://github.com/alebypegasus/stremiobrew",
   "rootRequired": true,
-  "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_5.0.2_all.ipk",
+  "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_5.0.3_all.ipk",
   "ipkHash": {
-    "sha256": "79107ee5002a58f1f776cafe113c48a55a4941abd66d0cc585713ddce1a6cd09"
+    "sha256": "2a17af335a5d5dd36f34d0bdd221b538407afddf8054fbec9a0c1997280ae4da"
   }
 }
