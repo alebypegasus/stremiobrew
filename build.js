@@ -3,10 +3,10 @@ const path = require('path');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
 
-console.log('=== Stremiobrew Multi-Target Build System (v5.0.2) ===');
+console.log('=== Stremiobrew Multi-Target Build System (v5.0.3) ===');
 
 const BASE_URL = 'https://stremiobrew.vercel.app';
-const VERSION = '5.0.2';
+const VERSION = '5.0.3';
 
 // -------------------------------------------------------------
 // 1. BUILD LEGACY (webOS 3.x - 4.x / 2016-2019)
@@ -15,7 +15,7 @@ const LEGACY_VERSION = VERSION;
 const LEGACY_ID = 'io.strem.tv.beta';
 const LEGACY_IPK = `${LEGACY_ID}_${LEGACY_VERSION}_all.ipk`;
 
-console.log('\n[1/2] Processing Legacy Package (Stremio Lite LG v5.0.2)...');
+console.log('\n[1/2] Processing Legacy Package (Stremio Lite LG v5.0.3)...');
 
 if (fs.existsSync('unpacked') && fs.existsSync('control_unpacked')) {
   console.log(' - Compressing data.tar.gz...');
@@ -135,7 +135,7 @@ const legacyDescriptionHtml = `<div style="font-family:sans-serif;color:#e5e7eb;
   <img src="${BASE_URL}/preview_lite.jpg" alt="Stremio Lite LG Legacy" style="width:100%;max-width:720px;border-radius:12px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,0,0,0.6);" />
   
   <!-- ENGLISH -->
-  <h2 style="color:#f59e0b;margin-top:0;font-size:1.35rem;">🇺🇸 Stremio Lite & Ultra Lite LG — Legacy Low-RAM Edition (v5.0.2)</h2>
+  <h2 style="color:#f59e0b;margin-top:0;font-size:1.35rem;">🇺🇸 Stremio Lite & Ultra Lite LG — Legacy Low-RAM Edition (v5.0.3)</h2>
   <p>Ultra-lightweight Stremio client designed for legacy <b>rooted</b> LG Smart TVs (webOS 3.x & 4.x / 2016–2019) with Chromium 53 engine and limited RAM (~512MB–1GB).</p>
   
   <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">⚡ Dual Performance Profiles:</h3>
@@ -152,36 +152,41 @@ const legacyDescriptionHtml = `<div style="font-family:sans-serif;color:#e5e7eb;
     <li><b>Requirement:</b> Rooted LG TV with <b>Homebrew Channel</b> installed.</li>
   </ul>
 
-  <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">🛠️ Key Fixes & Features:</h3>
+  <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">🛠️ v5.0.3 Key Fixes & Features:</h3>
   <ul>
-    <li><b>Native Video Trailers:</b> Hardware-accelerated MP4 player replaces memory-heavy YouTube iframe.</li>
-    <li><b>Fixed Back & Search Navigation:</b> Backspace key properly deletes text without crashing or closing the app; double-back event debounced.</li>
-    <li><b>Zero Memory Buffers:</b> Node.js local proxy avoids RAM buffer hoarding and background CPU spikes.</li>
+    <li><b>Curated Home Screen:</b> Direct home access to Movies, Series, Anime (Anime Kitsu) and Live TV / Channels.</li>
+    <li><b>Zero OOM Crashes:</b> Fixed Node.js process race, on-demand streaming engine startup, and horizontal poster virtualization keeping RAM usage under 50MB.</li>
+    <li><b>Hardware Video Pipeline Cleanup:</b> Proper player teardown on exit preventing GPU buffer lockups.</li>
+    <li><b>Fixed Back & Search Navigation:</b> Remote backspace and layered navigation rock solid.</li>
   </ul>
 
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:24px 0;" />
 
   <!-- PORTUGUÊS -->
-  <h2 style="color:#f59e0b;font-size:1.25rem;">🇧🇷 Português — Stremio Lite & Ultra Lite LG (v5.0.2)</h2>
+  <h2 style="color:#f59e0b;font-size:1.25rem;">🇧🇷 Português — Stremio Lite & Ultra Lite LG (v5.0.3)</h2>
   <p>Edição super leve para TVs LG clássicas com root (webOS 3.x e 4.x / 2016–2019).</p>
   <ul>
+    <li><b>Addons na Página Inicial:</b> Filmes, Séries, Animes em Alta (Anime Kitsu) e Canais de TV Ao Vivo organizados diretamente na tela inicial.</li>
+    <li><b>Fim dos Travamentos por Memória (OOM):</b> Eliminação de instâncias duplicadas de Node.js, ativação do motor sob demanda (economia de 80MB RAM) e virtualização horizontal de pôsteres.</li>
     <li><b>Dois Modos de Desempenho:</b>
       <ul>
         <li><b>Versão A (Lite):</b> Visual equilibrado com logotipos HD no topo e pôsteres otimizados.</li>
         <li><b>Versão C (Ultra Lite):</b> Modo extremo de economia de RAM (&lt;30MB VRAM), sem texturas pesadas na GPU para TVs de 512MB que antes reiniciavam.</li>
       </ul>
     </li>
-    <li><b>Trailers Nativos:</b> Player de vídeo HTML5 acelerado por hardware sem travar a TV.</li>
+    <li><b>Player & Trailers Nativos:</b> Desalocação completa de decodificadores de hardware ao sair para evitar bloqueio de VRAM.</li>
     <li><b>Busca e Tecla Voltar Corrigidas:</b> Digitação e remoção de caracteres sem fechar o app, retorno seguro por camadas.</li>
   </ul>
 
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:24px 0;" />
 
   <!-- ESPAÑOL -->
-  <h2 style="color:#f59e0b;font-size:1.25rem;">🇪🇸 Español — Stremio Lite LG (v5.0.2)</h2>
+  <h2 style="color:#f59e0b;font-size:1.25rem;">🇪🇸 Español — Stremio Lite LG (v5.0.3)</h2>
   <p>Edición ultraligera para Smart TVs LG clásicas con root (webOS 3.x y 4.x / 2016–2019).</p>
   <ul>
-    <li><b>Virtualización de Texturas GPU:</b> Evita cierres inesperados por falta de memoria RAM.</li>
+    <li><b>Página de Inicio Curada:</b> Películas, Series, Anime y Canales de TV en vivo directamente en la pantalla de inicio.</li>
+    <li><b>Optimización Extrema de RAM:</b> Eliminación de cuelgues y reinicios por falta de memoria.</li>
+    <li><b>Virtualización de Texturas GPU:</b> Carga liviana de memoria y fluidez máxima.</li>
     <li><b>Multi-idioma Completo:</b> Español, Portugués, Inglés y otros.</li>
   </ul>
 </div>
@@ -192,7 +197,7 @@ const modernDescriptionHtml = `<div style="font-family:sans-serif;color:#e5e7eb;
   <img src="${BASE_URL}/preview_modern.jpg" alt="Stremio Modern LG OLED" style="width:100%;max-width:720px;border-radius:12px;margin-bottom:16px;box-shadow:0 8px 24px rgba(0,0,0,0.6);" />
   
   <!-- ENGLISH -->
-  <h2 style="color:#a78bfa;margin-top:0;font-size:1.35rem;">🇺🇸 Stremio for webOS — Modern OLED & 4K Edition (v5.0.2)</h2>
+  <h2 style="color:#a78bfa;margin-top:0;font-size:1.35rem;">🇺🇸 Stremio for webOS — Modern OLED & 4K Edition (v5.0.3)</h2>
   <p>High-performance Stremio client designed for modern LG Smart TVs with 64-bit ARM64 processors running webOS 5.0 up to webOS 25+.</p>
   
   <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">📺 Hardware Compatibility:</h3>
@@ -213,7 +218,7 @@ const modernDescriptionHtml = `<div style="font-family:sans-serif;color:#e5e7eb;
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:24px 0;" />
 
   <!-- PORTUGUÊS -->
-  <h2 style="color:#a78bfa;font-size:1.25rem;">🇧🇷 Português — Stremio Modern LG OLED (v5.0.2)</h2>
+  <h2 style="color:#a78bfa;font-size:1.25rem;">🇧🇷 Português — Stremio Modern LG OLED (v5.0.3)</h2>
   <p>Cliente Stremio de alto desempenho para Smart TVs LG modernas (2020 a 2025 / OLED C1..C5) com processador 64-bit ARM64 e webOS 5.0+.</p>
   <ul>
     <li><b>Correção de Áudio Nativo:</b> Respeita automaticamente o idioma preferido de áudio configurado na sua conta Stremio.</li>
@@ -225,7 +230,7 @@ const modernDescriptionHtml = `<div style="font-family:sans-serif;color:#e5e7eb;
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:24px 0;" />
 
   <!-- ESPAÑOL -->
-  <h2 style="color:#a78bfa;font-size:1.25rem;">🇪🇸 Español — Stremio Modern LG OLED (v5.0.2)</h2>
+  <h2 style="color:#a78bfa;font-size:1.25rem;">🇪🇸 Español — Stremio Modern LG OLED (v5.0.3)</h2>
   <p>Cliente Stremio de alto rendimiento para televisores LG modernos (2020 a 2025 / OLED C1..C5, webOS 5.0+).</p>
   <ul>
     <li><b>Corrección de Audio Nativo:</b> Respeta el idioma de audio configurado en tu cuenta Stremio.</li>

@@ -22,10 +22,10 @@ function go() { if (!done) { done = true; window.location.replace(SHELL_URL); } 
 
 var cmd =
   'SVC=' + SVC + '; ' +
-  'netstat -tln 2>/dev/null | grep -q :8080 || ' +
+  'netstat -tln 2>/dev/null | grep -q :8080 || ps | grep -v grep | grep -q tvserver.js || ' +
   '{ HOME=/home/root USER=root ' +
   'FFMPEG_BIN=$SVC/bin/ffmpeg FFPROBE_BIN=$SVC/bin/ffprobe ' +
-  'setsid /lib/ld-linux.so.3 --library-path $SVC/bin/lib $SVC/bin/node18 --max-old-space-size=96 ' +
+  'setsid /lib/ld-linux.so.3 --library-path $SVC/bin/lib $SVC/bin/node18 --max-old-space-size=32 --optimize_for_size --max_semi_space_size=1 ' +
   '$SVC/tvserver.js >$SVC/tvserver.log 2>&1 </dev/null & }; ' +
   'n=0; while [ $n -lt 75 ]; do netstat -tln 2>/dev/null | grep -q :8080 && break; sleep 1; n=$((n+1)); done; ' +
   'netstat -tln 2>/dev/null | grep -q :8080 && echo TVUP || echo TVDOWN';

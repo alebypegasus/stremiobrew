@@ -26,11 +26,31 @@ var SERVER = path.join(DIR, 'server.js');
 
 function dbg(m) { try { fs.appendFileSync(path.join(DIR, 'tvserver.log'), new Date().toISOString() + ' ' + m + '\n'); } catch (e) {} }
 dbg('tvserver starting, uid=' + (process.getuid ? process.getuid() : '?'));
-process.on('uncaughtException', function (e) { dbg('UNCAUGHT: ' + (e && e.stack || e)); });
+process.on('uncaughtException', function (e) {
+  dbg('UNCAUGHT: ' + (e && e.stack || e));
+  if (e && e.code === 'EADDRINUSE') {
+    dbg('port 8080 already bound by another tvserver instance, exiting duplicate');
+    process.exit(0);
+  }
+});
 
 // The app icon, as a data URI, so the loading splash logo is 1:1 with the app icon.
 var ICON_URI = '';
-try { ICON_URI = 'data:image/png;base64,' + fs.readFileSync('/media/developer/apps/usr/palm/applications/io.strem.tv.beta/icon.png').toString('base64'); } catch (e) { dbg('icon read failed: ' + e.message); }
+var iconCandidates = [
+  path.join(DIR, '..', '..', 'applications', 'io.strem.tv.beta', 'icon.png'),
+  '/media/developer/apps/usr/palm/applications/io.strem.tv.beta/icon.png',
+  '/media/cryptofs/apps/usr/palm/applications/io.strem.tv.beta/icon.png',
+  path.join(DIR, 'stremio-logo.png')
+];
+for (var ic = 0; ic < iconCandidates.length; ic++) {
+  try {
+    if (fs.existsSync(iconCandidates[ic])) {
+      ICON_URI = 'data:image/png;base64,' + fs.readFileSync(iconCandidates[ic]).toString('base64');
+      break;
+    }
+  } catch (e) {}
+}
+
 // The official Stremio logo mark, served at /logo.png (beta splash + settings/search backdrop).
 var LOGO_PNG = null;
 try { LOGO_PNG = fs.readFileSync(path.join(DIR, 'stremio-logo.png')); } catch (e) { dbg('logo read failed: ' + e.message); }
@@ -59,10 +79,10 @@ function startStreamingServer() {
   env.FFMPEG_BIN = path.join(DIR, 'bin', 'ffmpeg');
   env.FFPROBE_BIN = path.join(DIR, 'bin', 'ffprobe');
   env.NO_CORS = '1';
-  env.BT_MAX_PEERS = '40';
+  env.BT_MAX_PEERS = '30';
   try {
     dbg('starting streaming server on :' + SERVER_PORT);
-    streamingChild = spawn(LOADER, ['--library-path', LIB, NODE, '--max-old-space-size=80', SERVER], {
+    streamingChild = spawn(LOADER, ['--library-path', LIB, NODE, '--max-old-space-size=48', '--optimize_for_size', '--max_semi_space_size=1', SERVER], {
       cwd: DIR, env: env, detached: true, stdio: 'ignore'
     });
     streamingChild.on('error', function (e) { dbg('server.js error: ' + (e && e.message)); });
@@ -90,7 +110,8 @@ function ensureStreamingServer(cb) {
   });
 }
 
-ensureStreamingServer();
+// O streaming server só é iniciado sob demanda se um stream de torrent (:11470) for chamado,
+// poupando ~80MB de memória RAM no arranque e navegação do catálogo.
 
 // ---------- injected CSS / JS ----------
 var CSS = [
@@ -492,6 +513,7 @@ function inject(html) {
 // Stremio encodes the picked stream as a zlib+base64 token in the player route.
 // Decode it server-side (node has zlib) so the bare page stays tiny.
 function decodeStreamToken(token) {
+  if (!token) return null;
   try {
     var t = String(token).replace(/~([0-9A-Fa-f]{2})/g, function (m, h) { return String.fromCharCode(parseInt(h, 16)); });
     t = t.replace(/-/g, '+').replace(/_/g, '/');
@@ -905,11 +927,10 @@ function playerPage(stream, ctx) {
 '  for(var i=0;i<cues.length;i++){if(t>=cues[i].s&&t<=cues[i].e){txt=cues[i].t;break;}}' +
 '  if(subEl._last!==txt){subEl._last=txt;subEl.innerHTML=txt?("<span>"+txt.replace(/\\n/g,"<br>")+"</span>"):"";}' +
 '}' +
-'/* Exit & Save Progress */' +
 'var exited=false;' +
 'function exit(){' +
 '  if(exited)return;exited=true;' +
-'  try{v.pause();}catch(e){}' +
+'  try{v.pause();v.removeAttribute("src");v.load();}catch(e){}' +
 '  document.getElementById("gocov").style.display="block";' +
 '  var target="http://127.0.0.1:8080/"+(BACK||"beta");' +
 '  location.replace(target);' +
@@ -1494,7 +1515,7 @@ function grabFrame(q, res) {
   res.writeHead(204); res.end();
 }
 
-http.createServer(function (req, res) {
+var mainServer = http.createServer(function (req, res) {
   if (req.method === 'OPTIONS') {
     res.writeHead(204, {
       'Access-Control-Allow-Origin': '*',
@@ -1623,9 +1644,14 @@ http.createServer(function (req, res) {
     res.writeHead(302, { Location: SHELL_URL.replace(/\/$/, '') + req.url });
     res.end();
   }
-}).listen(PORT, '127.0.0.1', function () {
+});
+mainServer.on('error', function (err) {
+  if (err && err.code === 'EADDRINUSE') {
+    dbg('port ' + PORT + ' already in use by another instance, exiting duplicate');
+    process.exit(0);
+  }
+});
+mainServer.listen(PORT, '127.0.0.1', function () {
   dbg('listening on :' + PORT); console.log('tvserver on :' + PORT);
-  // Pre-warm the shell so the first real request is served from memory (saves the
-  // app.strem.io round-trip on launch). Runs in parallel with the streaming server boot.
   fetchShell(function () { dbg('shell prewarmed'); });
 });

@@ -559,7 +559,17 @@ var I18N = {
     "Awards": "Awards",
     "Resume last stream": "Resume last stream",
     "The exact stream you played before": "The exact stream you played before",
-    "Your library is empty.<br>Hold OK on any title (or use + Library) to add it here.": "Your library is empty.<br>Hold OK on any title (or use + Library) to add it here."
+    "Your library is empty.<br>Hold OK on any title (or use + Library) to add it here.": "Your library is empty.<br>Hold OK on any title (or use + Library) to add it here.",
+    "Filmes Populares": "Popular Movies",
+    "Séries Populares": "Popular Series",
+    "Filmes Mais Bem Avaliados": "Top Rated Movies",
+    "Séries Mais Bem Avaliadas": "Top Rated Series",
+    "Filmes Lançamentos": "New Release Movies",
+    "Séries Lançamentos": "New Release Series",
+    "Animes Populares": "Popular Anime",
+    "Animes Lançamentos": "New Anime Releases",
+    "Canais & TV Ao Vivo": "Live TV & Channels",
+    "Futebol Ao Vivo": "Live Football & Sports"
   },
   "pt-BR": {
     "Search": "Buscar",
@@ -664,7 +674,17 @@ var I18N = {
     "Awards": "Prêmios",
     "Resume last stream": "Continuar último link",
     "The exact stream you played before": "O link exato que você assistiu antes",
-    "Your library is empty.<br>Hold OK on any title (or use + Library) to add it here.": "Sua biblioteca está vazia.<br>Segure OK em qualquer título para adicionar aqui."
+    "Your library is empty.<br>Hold OK on any title (or use + Library) to add it here.": "Sua biblioteca está vazia.<br>Segure OK em qualquer título para adicionar aqui.",
+    "Filmes Populares": "Filmes Populares",
+    "Séries Populares": "Séries Populares",
+    "Filmes Mais Bem Avaliados": "Filmes Mais Bem Avaliados",
+    "Séries Mais Bem Avaliadas": "Séries Mais Bem Avaliadas",
+    "Filmes Lançamentos": "Filmes Lançamentos",
+    "Séries Lançamentos": "Séries Lançamentos",
+    "Animes Populares": "Animes Populares",
+    "Animes Lançamentos": "Animes Lançamentos",
+    "Canais & TV Ao Vivo": "Canais & TV Ao Vivo",
+    "Futebol Ao Vivo": "Futebol Ao Vivo"
   },
   "pt-PT": {
     "Search": "Pesquisar",
@@ -2559,14 +2579,109 @@ function pushLib(item){
   postJson(API + '/api/datastorePut', { authKey: ak, collection: 'libraryItem', changes: [item] }, function(){}, 8000);
 }
 
+var DEFAULT_ADDONS = [
+  {
+    transportUrl: 'https://v3-cinemeta.strem.io/manifest.json',
+    manifest: {
+      id: 'com.linvo.cinemeta',
+      name: 'Cinemeta',
+      version: '3.0.12',
+      description: 'Filmes e Séries oficiais do Stremio',
+      resources: ['catalog', 'meta'],
+      types: ['movie', 'series'],
+      catalogs: [
+        { type: 'movie', id: 'top', name: 'Filmes Populares' },
+        { type: 'series', id: 'top', name: 'Séries Populares' },
+        { type: 'movie', id: 'imdbRating', name: 'Filmes Mais Bem Avaliados' },
+        { type: 'series', id: 'imdbRating', name: 'Séries Mais Bem Avaliadas' }
+      ]
+    }
+  },
+  {
+    transportUrl: 'https://anime-kitsu.strem.fun/manifest.json',
+    manifest: {
+      id: 'community.anime.kitsu',
+      name: 'Anime Kitsu',
+      version: '0.0.10',
+      description: 'Catálogo oficial de animes Kitsu.io',
+      resources: ['catalog', 'meta', 'subtitles'],
+      types: ['anime', 'series', 'movie'],
+      catalogs: [
+        { type: 'anime', id: 'kitsu-anime-trending', name: 'Animes em Alta' },
+        { type: 'anime', id: 'kitsu-anime-popular', name: 'Animes Mais Populares' },
+        { type: 'anime', id: 'kitsu-anime-airing', name: 'Animes em Exibição' }
+      ]
+    }
+  },
+  {
+    transportUrl: 'https://meufutebol.oneplayhd.com/manifest.json',
+    manifest: {
+      id: 'org.meufutebol',
+      name: 'Meu Futebol',
+      version: '1.0.0',
+      description: 'Canais de futebol e esportes ao vivo',
+      logo: 'https://embedcanaisdetv.com/images/premiere.png',
+      resources: ['catalog', 'meta', 'stream'],
+      types: ['tv'],
+      catalogs: [
+        { type: 'tv', id: 'meufutebol_channels', name: 'Futebol Ao Vivo' }
+      ],
+      idPrefixes: ['meufutebol:']
+    }
+  },
+  {
+    transportUrl: 'https://v3-channels.strem.io/manifest.json',
+    manifest: {
+      id: 'com.linvo.stremiochannels',
+      name: 'Canais de TV',
+      version: '1.30.7',
+      description: 'Canais de TV e transmissões ao vivo',
+      resources: ['catalog', 'meta'],
+      types: ['channel', 'tv'],
+      catalogs: [
+        { type: 'channel', id: 'top', name: 'Canais em Destaque' }
+      ]
+    }
+  },
+  {
+    transportUrl: 'https://opensubtitles-v3.strem.io/manifest.json',
+    manifest: {
+      id: 'org.stremio.opensubtitlesv3',
+      name: 'OpenSubtitles v3',
+      version: '1.0.0',
+      description: 'Legendas oficiais multi-idioma',
+      resources: ['subtitles'],
+      types: ['movie', 'series', 'anime']
+    }
+  }
+];
+
+function mergeDefaultAddons(userList){
+  if (!userList || !userList.length) return DEFAULT_ADDONS;
+  var hasKitsu = false, hasChannels = false, hasCinemeta = false, hasFutebol = false;
+  for (var i = 0; i < userList.length; i++){
+    var mid = (userList[i] && userList[i].manifest && userList[i].manifest.id) || '';
+    if (mid === 'community.anime.kitsu' || mid.indexOf('kitsu') >= 0) hasKitsu = true;
+    if (mid === 'org.meufutebol' || mid.indexOf('futebol') >= 0) hasFutebol = true;
+    if (mid === 'com.linvo.stremiochannels' || mid.indexOf('channel') >= 0 || mid.indexOf('iptv') >= 0) hasChannels = true;
+    if (mid === 'com.linvo.cinemeta' || mid.indexOf('cinemeta') >= 0) hasCinemeta = true;
+  }
+  var merged = userList.slice();
+  if (!hasCinemeta) merged.unshift(DEFAULT_ADDONS[0]);
+  if (!hasKitsu) merged.push(DEFAULT_ADDONS[1]);
+  if (!hasFutebol) merged.push(DEFAULT_ADDONS[2]);
+  if (!hasChannels) merged.push(DEFAULT_ADDONS[3]);
+  return merged;
+}
+
 function addons(){
   var a = lsJson('addons');
-  if (a && a.length) return a;
+  if (a && a.length) return mergeDefaultAddons(a);
   var inst = lsJson('installedAddons');
-  if (inst && inst.length) return inst;
+  if (inst && inst.length) return mergeDefaultAddons(inst);
   var prof = lsJson('profile');
-  if (prof && prof.addons && prof.addons.length) return prof.addons;
-  return [];
+  if (prof && prof.addons && prof.addons.length) return mergeDefaultAddons(prof.addons);
+  return DEFAULT_ADDONS;
 }
 function syncAddons(cb){
   var ak = authKey();
@@ -2592,19 +2707,110 @@ function addonBase(a){ return String(a.transportUrl || '').replace(/\/manifest\.
 function typeLabel(typ){
   if (typ === 'movie') return t('Movies');
   if (typ === 'series') return t('Series');
-  if (typ === 'tv' || typ === 'channel' || typ === 'iptv') return 'Canais / TV Ao Vivo';
+  if (typ === 'tv' || typ === 'channel' || typ === 'iptv') return t('Canais & TV Ao Vivo');
   if (typ === 'anime') return 'Animes';
   if (typ === 'other') return 'Outros';
   return typ;
 }
 
 function homeCatalogs(){
-  var out = [], a = addons(), seen = {};
+  var out = [];
+  var a = addons();
+
+  // 1. Filmes Populares
+  out.push({
+    title: '🎬 ' + t('Filmes Populares'),
+    type: 'movie',
+    url: CIN + '/catalog/movie/top.json',
+    key: 'cin_m_top'
+  });
+
+  // 2. Séries Populares
+  out.push({
+    title: '📺 ' + t('Séries Populares'),
+    type: 'series',
+    url: CIN + '/catalog/series/top.json',
+    key: 'cin_s_top'
+  });
+
+  // 3. Filmes Mais Bem Avaliados
+  out.push({
+    title: '🌟 ' + t('Filmes Mais Bem Avaliados'),
+    type: 'movie',
+    url: CIN + '/catalog/movie/imdbRating.json',
+    key: 'cin_m_ir'
+  });
+
+  // 4. Séries Mais Bem Avaliadas
+  out.push({
+    title: '🌟 ' + t('Séries Mais Bem Avaliadas'),
+    type: 'series',
+    url: CIN + '/catalog/series/imdbRating.json',
+    key: 'cin_s_ir'
+  });
+
+  // 5. Filmes Lançamentos
+  out.push({
+    title: '🔥 ' + t('Filmes Lançamentos'),
+    type: 'movie',
+    url: CIN + '/catalog/movie/year/genre=2025.json',
+    key: 'cin_m_new'
+  });
+
+  // 6. Séries Lançamentos
+  out.push({
+    title: '🔥 ' + t('Séries Lançamentos'),
+    type: 'series',
+    url: CIN + '/catalog/series/year/genre=2025.json',
+    key: 'cin_s_new'
+  });
+
+  // 7. Animes Populares (Anime Kitsu)
+  out.push({
+    title: '⛩️ ' + t('Animes Populares'),
+    type: 'anime',
+    url: 'https://anime-kitsu.strem.fun/catalog/anime/kitsu-anime-popular.json',
+    key: 'kitsu_popular'
+  });
+
+  // 8. Animes Lançamentos (Anime Kitsu)
+  out.push({
+    title: '⛩️ ' + t('Animes Lançamentos'),
+    type: 'anime',
+    url: 'https://anime-kitsu.strem.fun/catalog/anime/kitsu-anime-airing.json',
+    key: 'kitsu_airing'
+  });
+
+  // 9. TV (Canais & TV Ao Vivo)
+  out.push({
+    title: '📡 ' + t('Canais & TV Ao Vivo'),
+    type: 'channel',
+    url: 'https://v3-channels.strem.io/catalog/channel/top.json',
+    key: 'tv_channels_top'
+  });
+
+  // 10. Futebol (Meu Futebol / Esportes Ao Vivo)
+  out.push({
+    title: '⚽ ' + t('Futebol Ao Vivo'),
+    type: 'tv',
+    url: 'https://meufutebol.oneplayhd.com/catalog/tv/meufutebol_channels.json',
+    key: 'meufutebol_live'
+  });
+
+  // 11. E mais... (Catálogos extras dos Addons instalados pelo usuário)
+  var seen = {
+    'cin_m_top': true, 'cin_s_top': true,
+    'cin_m_ir': true, 'cin_s_ir': true,
+    'cin_m_new': true, 'cin_s_new': true,
+    'kitsu_popular': true, 'kitsu_airing': true,
+    'tv_channels_top': true, 'meufutebol_live': true
+  };
   for (var i = 0; i < a.length; i++){
     var man = a[i] && a[i].manifest;
     if (!man || !man.catalogs) continue;
     var base = addonBase(a[i]);
     var addonName = man.name || 'Addon';
+    if (addonName === 'Cinemeta' || addonName === 'Anime Kitsu' || addonName === 'Canais de TV' || addonName === 'Meu Futebol') continue;
     for (var c = 0; c < man.catalogs.length; c++){
       var cat = man.catalogs[c];
       if (!cat || !cat.type || cat.id == null) continue;
@@ -2617,10 +2823,11 @@ function homeCatalogs(){
         }
       }
       catUrl += '.json';
-      if (seen[catUrl]) continue;
-      seen[catUrl] = true;
+      var rowKey = 'a_' + (man.id || i) + '_' + cat.type + '_' + cat.id;
+      if (seen[rowKey] || seen[catUrl]) continue;
+      seen[rowKey] = true; seen[catUrl] = true;
       var catTitle = cat.name || typeLabel(cat.type);
-      if (addonName && addonName !== 'Cinemeta' && catTitle.indexOf(addonName) < 0) {
+      if (addonName && catTitle.indexOf(addonName) < 0) {
         catTitle = addonName + ' · ' + catTitle;
       }
       out.push({
@@ -2628,9 +2835,9 @@ function homeCatalogs(){
         type: cat.type,
         addonName: addonName,
         url: catUrl,
-        key: 'a' + i + '_' + c + '_' + cat.type + '_' + cat.id
+        key: rowKey
       });
-      if (out.length >= 36) return out;
+      if (out.length >= 15) return out; // Permite as 10 principais + catálogos de addons adicionais
     }
   }
   return out;
@@ -2661,7 +2868,15 @@ function getCatalogUrl(url, key, type, cb){
   }, 8000);
 }
 
-var metaMem = {};
+var metaMem = {}, metaMemKeys = [];
+function putMetaMem(k, m){
+  if (metaMemKeys.length > 80){
+    var old = metaMemKeys.shift();
+    delete metaMem[old];
+  }
+  metaMem[k] = m;
+  metaMemKeys.push(k);
+}
 function isImdb(id){ return /^tt\d+/.test(String(id || '')); }
 
 function fallbackSyntheticMeta(type, id, cb, itemData){
@@ -2700,7 +2915,7 @@ function tryAddonMeta(type, id, cb, itemData){
         var meta = j && j.meta;
         if (meta){
           found = true;
-          metaMem[k] = meta;
+          putMetaMem(k, meta);
           lsSet('beta_meta_' + k, { t: Date.now(), meta: meta });
           cb(meta);
         } else {
@@ -2718,7 +2933,7 @@ function getMeta(type, id, cb, itemData){
   if (metaMem[k]){ cb(metaMem[k]); return; }
   var ls = lsJson('beta_meta_' + k);
   if (ls && ls.meta && (Date.now() - (ls.t || 0)) < 43200000){
-    metaMem[k] = ls.meta;
+    putMetaMem(k, ls.meta);
     cb(ls.meta);
     return;
   }
@@ -2726,7 +2941,7 @@ function getMeta(type, id, cb, itemData){
     xhrJson(CIN + '/meta/' + type + '/' + encodeURIComponent(id) + '.json', function(j){
       var m = j && j.meta;
       if (m){
-        metaMem[k] = m;
+        putMetaMem(k, m);
         lsSet('beta_meta_' + k, { t: Date.now(), meta: m });
         cb(m);
       } else {
@@ -2891,22 +3106,34 @@ function setBg(u){
    ========================================================= */
 function setRowLoaded(row, on){
   if (!row || !row.cardsEl) return;
-  if (row._loaded === on && on !== true) return;
   row._loaded = on;
   var imgs = row.cardsEl.getElementsByTagName('img');
+  var curCol = row.col || 0;
+  var minVisible = Math.max(0, curCol - 1);
+  var maxVisible = Math.min(imgs.length - 1, curCol + 7);
+
   for (var i = 0; i < imgs.length; i++){
     var im = imgs[i];
     if (!on){
       if (im.src && im.src !== BLANK_IMG){ im._full = im.src; im.src = BLANK_IMG; }
-    } else if (im._full){
-      (function(targetImg, src, delay){
-        setTimeout(function(){
-          if (row._loaded && targetImg._full === src){
-            targetImg.src = src;
-            targetImg._full = null;
-          }
-        }, delay);
-      })(im, im._full, i * 25);
+    } else {
+      if (i >= minVisible && i <= maxVisible){
+        if (im._full){
+          (function(targetImg, src, delay){
+            setTimeout(function(){
+              if (row._loaded && targetImg._full === src){
+                targetImg.src = src;
+                targetImg._full = null;
+              }
+            }, delay);
+          })(im, im._full, (i - minVisible) * 25);
+        }
+      } else {
+        if (im.src && im.src !== BLANK_IMG){
+          im._full = im.src;
+          im.src = BLANK_IMG;
+        }
+      }
     }
   }
 }
@@ -2934,7 +3161,7 @@ function heroApply(it, self){
     getLocalizedDesc(it.id, it.description, function(localized){
       if (self.focusedItem() === it && localized) $('heroDesc').textContent = localized;
     });
-  });
+  }, it);
 }
 
 function makeCard(it, wide, label, eager){
@@ -2948,11 +3175,15 @@ function makeCard(it, wide, label, eager){
 
   var src = wide ? bgSmall(it) : posterOf(it);
   if (src){
-    var img = new Image();
-    img.onload = function(){ d.insertBefore(img, d.firstChild); img.onload = null; };
+    var img = document.createElement('img');
     img.onerror = function(){ if (img.src !== BLANK_IMG) nm.style.display = 'block'; };
-    if (eager) img.src = src;
-    else { img._full = src; img.src = BLANK_IMG; d.insertBefore(img, d.firstChild); }
+    if (eager){
+      img.src = src;
+    } else {
+      img._full = src;
+      img.src = BLANK_IMG;
+    }
+    d.insertBefore(img, d.firstChild);
   } else nm.style.display = 'block';
 
   if (label && !wide){
@@ -3239,6 +3470,7 @@ function makeBoard(loader){
       var off = Math.max(0, row.col - (vis - 2)) * w;
       if (row.col <= 0) off = 0;
       row.cardsEl.style.transform = 'translate3d(-' + off + 'px, 0, 0)';
+      setRowLoaded(row, true);
     },
     moveH: function(dir){
       var row = this.rows[this.rowIdx];
@@ -3343,44 +3575,45 @@ function loadCatalogRows(board, defs, includeCW){
       var row = buildRow(def.title, [], false);
       board.rows.push(row);
       row.el.style.display = 'none';
-      getCatalogUrl(def.url, def.key, def.type, function(items){
-        row.items = items;
-        row.cardsEl.innerHTML = '';
-        row.cardEls = [];
-        for (var i = 0; i < items.length; i++){
-          var cd = makeCard(items[i], false, false, false);
-          row.cardsEl.appendChild(cd);
-          row.cardEls.push(cd);
-        }
-        row.el.style.display = items.length ? '' : 'none';
-        if (items.length) {
-          setTimeout(function(){ row.el.className = 'row in'; }, 100 + di * 80);
-        }
-        if (curBoard() === board) board.paint(true);
-      });
+      var delay = di < 2 ? 0 : Math.min(di * 120, 1200);
+      setTimeout(function(){
+        getCatalogUrl(def.url, def.key, def.type, function(items){
+          row.items = items;
+          row.cardsEl.innerHTML = '';
+          row.cardEls = [];
+          for (var i = 0; i < items.length; i++){
+            var cd = makeCard(items[i], false, def.type === 'channel' || def.type === 'tv', false);
+            row.cardsEl.appendChild(cd);
+            row.cardEls.push(cd);
+          }
+          row.el.style.display = items.length ? '' : 'none';
+          if (items.length) {
+            row.el.className = 'row in';
+          }
+          if (curBoard() === board) board.paint(false);
+        });
+      }, delay);
     })(defs[d], d);
   }
 }
 
 function homeDefs(){
-  var cats = homeCatalogs();
-  if (!cats.length){
-    cats = [
-      { title: t('Popular') + ' · ' + t('Movies'), type: 'movie', url: CIN + '/catalog/movie/top.json', key: 'cin_m_top' },
-      { title: t('Popular') + ' · ' + t('Series'), type: 'series', url: CIN + '/catalog/series/top.json', key: 'cin_s_top' },
-      { title: t('Top Rated') + ' · ' + t('Movies'), type: 'movie', url: CIN + '/catalog/movie/imdbRating.json', key: 'cin_m_ir' },
-      { title: t('Top Rated') + ' · ' + t('Series'), type: 'series', url: CIN + '/catalog/series/imdbRating.json', key: 'cin_s_ir' }
-    ];
-  }
-  return cats;
+  return homeCatalogs();
 }
 
 var DGEN = ['Action', 'Comedy', 'Sci-Fi', 'Drama', 'Horror', 'Romance', 'Thriller', 'Animation'];
 function discDefs(){
   var out = [
-    { title: t('Trending') + ' · ' + t('Movies'), type: 'movie', url: CIN + '/catalog/movie/top.json', key: 'd_m_top' },
-    { title: t('Trending') + ' · ' + t('Series'), type: 'series', url: CIN + '/catalog/series/top.json', key: 'd_s_top' },
-    { title: t('Top Rated') + ' · ' + t('Movies'), type: 'movie', url: CIN + '/catalog/movie/imdbRating.json', key: 'd_m_ir' }
+    { title: '🎬 ' + t('Filmes Populares'), type: 'movie', url: CIN + '/catalog/movie/top.json', key: 'd_m_top' },
+    { title: '📺 ' + t('Séries Populares'), type: 'series', url: CIN + '/catalog/series/top.json', key: 'd_s_top' },
+    { title: '🌟 ' + t('Filmes Mais Bem Avaliados'), type: 'movie', url: CIN + '/catalog/movie/imdbRating.json', key: 'd_m_ir' },
+    { title: '🌟 ' + t('Séries Mais Bem Avaliadas'), type: 'series', url: CIN + '/catalog/series/imdbRating.json', key: 'd_s_ir' },
+    { title: '🔥 ' + t('Filmes Lançamentos'), type: 'movie', url: CIN + '/catalog/movie/year/genre=2025.json', key: 'd_m_new' },
+    { title: '🔥 ' + t('Séries Lançamentos'), type: 'series', url: CIN + '/catalog/series/year/genre=2025.json', key: 'd_s_new' },
+    { title: '⛩️ ' + t('Animes Populares'), type: 'anime', url: 'https://anime-kitsu.strem.fun/catalog/anime/kitsu-anime-popular.json', key: 'd_a_pop' },
+    { title: '⛩️ ' + t('Animes Lançamentos'), type: 'anime', url: 'https://anime-kitsu.strem.fun/catalog/anime/kitsu-anime-airing.json', key: 'd_a_airing' },
+    { title: '📡 ' + t('Canais & TV Ao Vivo'), type: 'channel', url: 'https://v3-channels.strem.io/catalog/channel/top.json', key: 'd_tv_top' },
+    { title: '⚽ ' + t('Futebol Ao Vivo'), type: 'tv', url: 'https://meufutebol.oneplayhd.com/catalog/tv/meufutebol_channels.json', key: 'd_fut' }
   ];
   for (var i = 0; i < DGEN.length; i++){
     out.push({ title: DGEN[i] + ' · ' + t('Movies'), type: 'movie', url: CIN + '/catalog/movie/top/genre=' + encodeURIComponent(DGEN[i]) + '.json', key: 'd_g_' + i });
@@ -4620,7 +4853,7 @@ function closeTrailer(){
   var modal = $('trailerModal');
   var vidEl = $('trailerVideo');
   if (modal && vidEl){
-    try { vidEl.pause(); vidEl.src = ''; } catch(e){}
+    try { vidEl.pause(); vidEl.removeAttribute('src'); vidEl.load(); } catch(e){}
     modal.style.display = 'none';
     window._trailerOpen = false;
   }
