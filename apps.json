@@ -16,16 +16,16 @@
       "fullDescriptionUrl": "apps/io.strem.tv/full_description.html",
       "manifest": {
         "id": "io.strem.tv",
-        "version": "5.0.3",
+        "version": "5.0.4",
         "type": "web",
         "title": "Stremio for webOS (2020-2025 / OLED)",
         "appDescription": "High-performance Stremio client for modern LG webOS TVs (webOS 5.0+ / OLED C-Series) with Native Audio Track Fix, Turbo RAM Cache and ARM64 server.",
         "iconUri": "https://stremiobrew.vercel.app/icon-modern.png",
         "sourceUrl": "https://github.com/alebypegasus/stremiobrew",
         "rootRequired": false,
-        "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv_5.0.3_all.ipk",
+        "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv_5.0.4_all.ipk",
         "ipkHash": {
-          "sha256": "1af7c290bd9a6f941c7d157b4bdc843dbcd0e5849cab97a2031db05936ecfb9a"
+          "sha256": "34c819d0b47b66b89a44f01b9c043f52f7b7366351f30727dee58db27676bbdd"
         }
       }
     },
@@ -39,16 +39,16 @@
       "fullDescriptionUrl": "apps/io.strem.tv.beta/full_description.html",
       "manifest": {
         "id": "io.strem.tv.beta",
-        "version": "5.0.3",
+        "version": "5.0.4",
         "type": "web",
         "title": "Stremio Lite & Ultra Lite LG (2016-2019)",
         "appDescription": "Stremio client for legacy rooted LG webOS 3.x/4.x TVs (Chromium 53). Includes Versão A (Lite) & Versão C (Ultra Lite) performance modes with extreme RAM savings, hardware video trailers, and fixed back/search navigation.",
         "iconUri": "https://stremiobrew.vercel.app/icon-legacy.png",
         "sourceUrl": "https://github.com/alebypegasus/stremiobrew",
         "rootRequired": true,
-        "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_5.0.3_all.ipk",
+        "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_5.0.4_all.ipk",
         "ipkHash": {
-          "sha256": "2a17af335a5d5dd36f34d0bdd221b538407afddf8054fbec9a0c1997280ae4da"
+          "sha256": "44f2154bfb631c3796a9999460201a28051f24f1d16630a3cf57ce01d50020e0"
         }
       }
     }

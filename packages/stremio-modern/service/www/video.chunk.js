@@ -21124,18 +21124,35 @@
                     G("time"), G("buffered")
                 }, A.ondurationchange = function() {
                     G("duration")
-                }, A.onwaiting = function() {
-                    G("buffering"), G("buffered")
+                };
+                var _stallTimer = null;
+                function _checkStallRecovery() {
+                    if (_stallTimer) clearTimeout(_stallTimer);
+                    _stallTimer = setTimeout(function() {
+                        if (A && !A.paused && !A.seeking && A.duration && A.readyState >= 2) {
+                            try {
+                                var cur = A.currentTime;
+                                A.currentTime = Math.max(0, cur - 0.2);
+                                A.play();
+                            } catch(e) {}
+                        }
+                    }, 3500);
+                }
+                function _clearStallRecovery() {
+                    if (_stallTimer) { clearTimeout(_stallTimer); _stallTimer = null; }
+                }
+                A.onwaiting = function() {
+                    _checkStallRecovery(), G("buffering"), G("buffered")
                 }, A.onseeking = function() {
-                    G("buffering"), G("buffered")
+                    _clearStallRecovery(), G("buffering"), G("buffered")
                 }, A.onseeked = function() {
-                    G("buffering"), G("buffered")
+                    _clearStallRecovery(), G("buffering"), G("buffered")
                 }, A.onstalled = function() {
-                    G("buffering"), G("buffered")
+                    _checkStallRecovery(), G("buffering"), G("buffered")
                 }, A.onplaying = function() {
-                    G("buffering"), G("buffered"), r || (r = !0, G("loaded"))
+                    _clearStallRecovery(), G("buffering"), G("buffered"), r || (r = !0, G("loaded"))
                 }, A.oncanplay = function() {
-                    G("buffering"), G("buffered")
+                    _clearStallRecovery(), G("buffering"), G("buffered")
                 }, A.canplaythrough = function() {
                     G("buffering"), G("buffered")
                 }, A.onloadeddata = function() {

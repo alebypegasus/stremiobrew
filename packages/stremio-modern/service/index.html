@@ -16,6 +16,48 @@
     <script defer src="main.js"></script>
     <script defer src="service.js"></script>
     <script defer src="webOSTV.js"></script>
+    <script>
+        (function() {
+            window.addEventListener('keydown', function(e) {
+                var k = e.keyCode;
+                var v = document.querySelector('video');
+                if (k === 403) { // Red -> Search
+                    e.preventDefault(); e.stopPropagation();
+                    window.location.hash = '#/search';
+                } else if (k === 404) { // Green -> Home
+                    e.preventDefault(); e.stopPropagation();
+                    window.location.hash = '#/';
+                } else if (k === 405) { // Yellow -> Library
+                    e.preventDefault(); e.stopPropagation();
+                    window.location.hash = '#/library';
+                } else if (k === 406) { // Blue -> Discover
+                    e.preventDefault(); e.stopPropagation();
+                    window.location.hash = '#/discover';
+                } else if (k === 413) { // Stop
+                    if (v) { try { v.pause(); } catch(x) {} }
+                    window.history.back();
+                    e.preventDefault();
+                } else if (k === 415 || k === 207) { // Play
+                    if (v && v.paused) { try { v.play(); } catch(x) {} e.preventDefault(); }
+                } else if (k === 19 || k === 119) { // Pause
+                    if (v && !v.paused) { try { v.pause(); } catch(x) {} e.preventDefault(); }
+                } else if (k === 417 || k === 418 || k === 208) { // Fast Forward
+                    if (v && v.duration) { try { v.currentTime = Math.min(v.duration, v.currentTime + 10); } catch(x) {} e.preventDefault(); }
+                } else if (k === 412 || k === 168) { // Rewind
+                    if (v && v.duration) { try { v.currentTime = Math.max(0, v.currentTime - 10); } catch(x) {} e.preventDefault(); }
+                } else if (k === 33 || k === 427) { // Channel / Page Up
+                    window.scrollBy({ top: -450, behavior: 'smooth' });
+                } else if (k === 34 || k === 428) { // Channel / Page Down
+                    window.scrollBy({ top: 450, behavior: 'smooth' });
+                }
+            }, true);
+            window.addEventListener('wheel', function(e) {
+                if (Math.abs(e.deltaY) > 10) {
+                    window.scrollBy({ top: e.deltaY * 2, behavior: 'smooth' });
+                }
+            }, { passive: true });
+        })();
+    </script>
 </head>
 <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
