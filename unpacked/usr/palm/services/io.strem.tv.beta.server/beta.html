@@ -2582,6 +2582,181 @@ function libGridItems(){
   return out.slice(0, 60);
 }
 
+function getLikedList(){
+  var out = [], seen = {};
+  var raw = lsJson('stremio_liked_items');
+  if (raw && raw.length){
+    for (var i = 0; i < raw.length; i++){
+      var itm = raw[i];
+      if (itm && itm.id && !seen[itm.id]){
+        seen[itm.id] = true;
+        out.push(itm);
+      }
+    }
+  }
+  var lib = allLib();
+  for (var j = 0; j < lib.length; j++){
+    var it = lib[j];
+    if (!it || !it._id || it.removed) continue;
+    var s = it.state || {};
+    if (it.liked || s.liked){
+      if (!seen[it._id]){
+        seen[it._id] = true;
+        out.push({
+          id: it._id,
+          type: it.type || 'movie',
+          name: it.name || '',
+          poster: it.poster || '',
+          background: it.background || it.poster || '',
+          likedAt: s.lastWatched || it._mtime || ''
+        });
+      }
+    }
+  }
+  return out;
+}
+
+function isLiked(id){
+  if (!id) return false;
+  var list = getLikedList();
+  for (var i = 0; i < list.length; i++){
+    if (list[i] && list[i].id === id) return true;
+  }
+  return false;
+}
+
+function toggleLiked(itemMeta){
+  if (!itemMeta || !itemMeta.id) return false;
+  var id = itemMeta.id;
+  var wasLiked = isLiked(id);
+  var nowLiked = !wasLiked;
+  var raw = lsJson('stremio_liked_items') || [];
+  var list = [];
+  for (var i = 0; i < raw.length; i++){
+    if (raw[i] && raw[i].id !== id) list.push(raw[i]);
+  }
+  if (nowLiked){
+    list.unshift({
+      id: id,
+      type: itemMeta.type || 'movie',
+      name: itemMeta.name || itemMeta.title || '',
+      poster: itemMeta.poster || '',
+      background: itemMeta.background || itemMeta.poster || '',
+      likedAt: Date.now()
+    });
+  }
+  lsSet('stremio_liked_items', list);
+
+  var now = new Date().toISOString();
+  var it = lsJson(PRE + id);
+  if (!it){
+    it = {
+      _id: id,
+      name: itemMeta.name || itemMeta.title || '',
+      type: itemMeta.type || 'movie',
+      poster: itemMeta.poster || '',
+      posterShape: 'poster',
+      background: itemMeta.background || itemMeta.poster || '',
+      logo: itemMeta.logo || '',
+      removed: false,
+      temp: false,
+      _ctime: now,
+      _mtime: now,
+      state: {
+        lastWatched: now,
+        timeOffset: 0,
+        duration: 0,
+        video_id: id,
+        watched: '',
+        timesWatched: 0,
+        flaggedWatched: 0,
+        liked: nowLiked
+      }
+    };
+  } else {
+    if (!it.state) it.state = {};
+    it.state.liked = nowLiked;
+    it.liked = nowLiked;
+    it._mtime = now;
+  }
+  lsSet(PRE + id, it);
+  pushLib(it);
+  invalidateBoards();
+  toast(nowLiked ? '❤️ ' + t('Adicionado aos Curtidos') : t('Removido dos Curtidos'));
+  return nowLiked;
+}
+
+function loadSuggestionsForUser(cb){
+  var liked = getLikedList();
+  var seenIds = {};
+  for (var i = 0; i < liked.length; i++){
+    if (liked[i] && liked[i].id) seenIds[liked[i].id] = true;
+  }
+  var allL = allLib();
+  for (var j = 0; j < allL.length; j++){
+    if (allL[j] && allL[j]._id && itemWatched(allL[j])) seenIds[allL[j]._id] = true;
+  }
+
+  if (liked.length > 0){
+    var sample = liked.slice(0, 3);
+    var targetGenres = {};
+    var doneCount = 0;
+    for (var s = 0; s < sample.length; s++){
+      (function(likedItem){
+        getMeta(likedItem.type || 'movie', likedItem.id, function(m){
+          doneCount++;
+          if (m && m.genres && m.genres.length){
+            for (var g = 0; g < m.genres.length; g++){
+              targetGenres[m.genres[g]] = (targetGenres[m.genres[g]] || 0) + 1;
+            }
+          }
+          if (doneCount === sample.length){
+            var genreList = Object.keys(targetGenres).sort(function(a, b){ return targetGenres[b] - targetGenres[a]; });
+            var mainGenre = genreList.length ? genreList[0] : 'Action';
+            var u = CIN + '/catalog/movie/top/genre=' + encodeURIComponent(mainGenre) + '.json';
+            xhrJson(u, function(resp){
+              var metas = (resp && resp.metas) || [];
+              var out = [];
+              for (var k = 0; k < metas.length && out.length < 24; k++){
+                var meta = metas[k];
+                if (!meta || seenIds[meta.id]) continue;
+                out.push({
+                  id: meta.id,
+                  type: meta.type || 'movie',
+                  name: meta.name || meta.title || '',
+                  poster: meta.poster || '',
+                  background: meta.background || meta.poster || '',
+                  genres: meta.genres || []
+                });
+              }
+              cb(out);
+            }, 8000);
+          }
+        });
+      })(sample[s]);
+    }
+  } else {
+    var uPop = CIN + '/catalog/movie/imdbRating.json';
+    xhrJson(uPop, function(resp){
+      var metas = (resp && resp.metas) || [];
+      var out = [];
+      for (var k = 0; k < metas.length && out.length < 24; k++){
+        var meta = metas[k];
+        if (!meta || seenIds[meta.id]) continue;
+        out.push({
+          id: meta.id,
+          type: meta.type || 'movie',
+          name: meta.name || meta.title || '',
+          poster: meta.poster || '',
+          background: meta.background || meta.poster || '',
+          genres: meta.genres || []
+        });
+      }
+      cb(out);
+    }, 8000);
+  }
+}
+
 function pullLib(cb){
   var ak = authKey();
   if (!ak){ if (cb) cb(); return; }
@@ -3629,6 +3804,42 @@ function loadCatalogRows(board, defs, includeCW){
       var r0 = buildRow(t('Continue Watching'), cwMapped, true);
       board.rows.push(r0);
     }
+
+    var lk = getLikedList();
+    if (lk.length){
+      var lkMapped = [];
+      for (var li = 0; li < Math.min(lk.length, 24); li++){
+        lkMapped.push({
+          id: lk[li].id,
+          type: lk[li].type || 'movie',
+          name: lk[li].name,
+          poster: lk[li].poster,
+          background: lk[li].background,
+          cw: false
+        });
+      }
+      var rLiked = buildRow('❤️ ' + t('Meus Curtidos'), lkMapped, false, true);
+      board.rows.push(rLiked);
+    }
+
+    var rSug = buildRow('✨ ' + (lk.length ? t('Sugestões com Base nos Seus Curtidos') : t('Recomendados para Você')), [], false);
+    board.rows.push(rSug);
+    rSug.el.style.display = 'none';
+    loadSuggestionsForUser(function(sugItems){
+      if (sugItems && sugItems.length){
+        rSug.items = sugItems;
+        rSug.cardsEl.innerHTML = '';
+        rSug.cardEls = [];
+        for (var si = 0; si < sugItems.length; si++){
+          var scd = makeCard(sugItems[si], false, false, false);
+          rSug.cardsEl.appendChild(scd);
+          rSug.cardEls.push(scd);
+        }
+        rSug.el.style.display = '';
+        rSug.el.className = 'row in';
+        if (curBoard() === board) board.paint(false);
+      }
+    });
   }
 
   for (var d = 0; d < defs.length; d++){
@@ -3700,6 +3911,17 @@ function loadLibraryRows(board){
     var r0 = buildRow(t('Continue Watching'), m, true);
     r0.el.className = 'row in';
     board.rows.push(r0);
+  }
+
+  var lk = getLikedList();
+  if (lk.length){
+    var lkArr = [];
+    for (var j = 0; j < lk.length; j++){
+      lkArr.push({ id: lk[j].id, type: lk[j].type, name: lk[j].name, poster: lk[j].poster, background: lk[j].background });
+    }
+    var rLk = buildRow('❤️ ' + t('Curtidos por Você'), lkArr, false, true);
+    rLk.el.className = 'row in';
+    board.rows.push(rLk);
   }
 
   var all = libGridItems(), mv = [], sr = [];
@@ -3872,6 +4094,15 @@ var detail = {
     if (hasTr) this.addBtn(t('Trailer'), function(){ self.playTrailer(); });
     this.addBtn(t('Similar'), function(){ goScr('sim', { type: self.type, id: self.id, name: m.name }); });
     this.addBtn(this.inLib() ? t('In Library') : t('+ Library'), function(){ self.toggleLib(); });
+    this.addBtn(isLiked(self.id) ? '❤️ ' + t('Curtido') : '🤍 ' + t('Curtir'), function(){
+      var nowLiked = toggleLiked({ id: self.id, type: self.type, name: m.name, poster: m.poster, background: m.background });
+      for (var b = 0; b < self.btnEls.length; b++){
+        var txt = self.btnEls[b].textContent;
+        if (txt.indexOf('Curtid') >= 0 || txt.indexOf('Curtir') >= 0){
+          self.btnEls[b].textContent = nowLiked ? ('❤️ ' + t('Curtido')) : ('🤍 ' + t('Curtir'));
+        }
+      }
+    });
     this.paint();
 
     var wantAutoStreams = this.autoStreams;
@@ -4978,6 +5209,7 @@ var cwMenu = {
     }
     add(ICON.play, it.cw ? 'Resume' : 'Play', function(){ self.close(); openItem(it); });
     add(ICON.info, 'Details', function(){ self.close(); goScr('detail', { type: it.type, id: it.id, vid: it.videoId || null }); });
+    add('<span style="font-size:22px;margin-right:10px">' + (isLiked(it.id) ? '❤️' : '🤍') + '</span>', isLiked(it.id) ? 'Remover dos Curtidos' : 'Adicionar aos Curtidos', function(){ self.close(); toggleLiked(it); });
     add(ICON.similar, 'Watch something similar', function(){ self.close(); goScr('sim', { type: it.type, id: it.id, name: it.name }); });
     add(ICON.trailer, 'Trailer', function(){ self.close(); getMeta(it.type, it.id, function(m){ var tr = trailerIdOf(m); if (tr) ytPlay(tr, 'beta'); }); });
     $('cwm').style.display = 'block'; this.paint();
