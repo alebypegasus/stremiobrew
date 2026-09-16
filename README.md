@@ -45,11 +45,27 @@ Repositório oficial para distribuição de clientes **Stremio** otimizados para
 
 ## 📦 Build e Atualização
 
-Para recompilar ambos os pacotes e sincronizar manifests e hashes SHA-256:
+Para recompilar ambos os pacotes oficiais e sincronizar manifests e hashes SHA-256:
 
 ```bash
 node build.js
 ```
+
+### 🧪 Instância de Teste / Experimental (Stremio Adapted)
+
+Para testar a versão adaptada separadamente sem misturar com as versões estáveis na loja:
+
+- **Feed do Repositório de Teste:**
+
+  ```text
+  https://stremiobrew.vercel.app/test.json
+  ```
+
+- **Compilar pacote de teste:**
+
+  ```bash
+  node build_adapted.js
+  ```
 
 ---
 

@@ -1,0 +1,10 @@
+Package: io.strem.tv.adapted
+Version: 5.0.4
+Section: misc
+Priority: optional
+Architecture: all
+Installed-Size: 95906664
+Maintainer: Stremiobrew <nobody@example.com>
+Description: Stremio Adapted Test - Stremio Theater structure with low-RAM compatibility for LG webOS
+webOS-Package-Format-Version: 2
+webOS-Packager-Version: x.y.x

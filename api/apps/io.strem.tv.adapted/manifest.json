@@ -1,0 +1,14 @@
+{
+  "id": "io.strem.tv.adapted",
+  "version": "5.0.4",
+  "type": "web",
+  "title": "[TESTE] Stremio Adapted LG (Experimental)",
+  "appDescription": "VERSÃO DE TESTE: Adaptação experimental da interface Stremio Theater com tipografia Plus Jakarta Sans, tela de detalhes completa, gaveta de streams aprimorada e seleção automática de áudio sobre base leve.",
+  "iconUri": "https://stremiobrew.vercel.app/icon.png",
+  "sourceUrl": "https://github.com/alebypegasus/stremiobrew",
+  "rootRequired": true,
+  "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.adapted_5.0.4_all.ipk",
+  "ipkHash": {
+    "sha256": "8b1054745b23b477fbd84090d7a4130a3559fb165e8d5ce3a28e2ebd1b963267"
+  }
+}
