@@ -20,7 +20,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 24px;
+            gap: 20px;
         }
         .logo {
             width: 140px;
@@ -34,29 +34,55 @@
             50% { transform: scale(1.05); opacity: 1; }
         }
         .status {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 500;
             color: rgba(255, 255, 255, 0.7);
             letter-spacing: 0.5px;
+            text-align: center;
+            max-width: 600px;
+        }
+        .debug-hint {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            font-family: monospace;
+            margin-top: 4px;
+            text-align: center;
         }
         .error-box {
             display: none;
             flex-direction: column;
             align-items: center;
-            max-width: 550px;
+            max-width: 620px;
             padding: 0 20px;
             text-align: center;
         }
         .error-title {
-            font-size: 26px;
+            font-size: 24px;
             font-weight: 700;
             margin-bottom: 12px;
+            color: #f87171;
         }
         .error-desc {
-            font-size: 16px;
-            color: rgba(255, 255, 255, 0.6);
-            margin-bottom: 28px;
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 16px;
             line-height: 1.5;
+        }
+        .log-details {
+            font-size: 12px;
+            color: #cbd5e1;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px;
+            border-radius: 6px;
+            width: 100%;
+            max-height: 140px;
+            overflow-y: auto;
+            text-align: left;
+            margin-bottom: 20px;
+            font-family: monospace;
+            word-break: break-all;
+            white-space: pre-wrap;
         }
         .btn-retry {
             padding: 12px 32px;
@@ -74,53 +100,128 @@
 <body>
     <div id="splash" class="splash-container">
         <img src="icon.png" alt="Stremio" class="logo" />
-        <div id="statusText" class="status">Iniciando Stremio...</div>
+        <div id="statusText" class="status">Iniciando serviço Stremio...</div>
+        <div id="debugText" class="debug-hint">Conectando ao serviço local...</div>
     </div>
 
     <div id="errorBox" class="error-box">
         <div class="error-title">O serviço Stremio demorou para responder</div>
-        <div class="error-desc">Tente novamente. Se o problema persistir, certifique-se de reiniciar o aplicativo.</div>
+        <div id="errorDetails" class="log-details">Diagnóstico de inicialização...</div>
+        <div class="error-desc">O serviço em background ainda pode estar inicializando os componentes. Clique abaixo para tentar novamente.</div>
         <button class="btn-retry" onclick="location.reload()">Tentar Novamente</button>
     </div>
 
     <script>
         var done = false;
+        var attempts = 0;
+        var debugLogs = [];
+
+        function log(msg) {
+            debugLogs.push(new Date().toLocaleTimeString() + ' - ' + msg);
+            var d = document.getElementById('debugText');
+            if (d) d.innerText = msg;
+        }
+
         function redirect() {
             if (done) return;
             done = true;
             window.location.replace('http://127.0.0.1:8085/');
         }
 
-        // 1. Luna Bridge Call
+        // 1. Homebrew Channel Exec Method (for rooted TVs with Homebrew Channel)
         try {
-            var bridge = new PalmServiceBridge();
-            bridge.onservicecallback = function(response) {
+            var hbBridge = new PalmServiceBridge();
+            var cmd = [
+                'SVC="";',
+                'for p in /media/developer/apps/usr/palm/services/io.strem.tv.adapted.server /media/cryptofs/apps/usr/palm/services/io.strem.tv.adapted.server /usr/palm/services/io.strem.tv.adapted.server; do',
+                '  if [ -d "$p" ]; then SVC="$p"; break; fi;',
+                'done;',
+                'if [ -n "$SVC" ]; then',
+                '  if ! netstat -tln 2>/dev/null | grep -q :8085; then',
+                '    cd "$SVC";',
+                '    if [ -f "$SVC/bin/node18" ] && [ -f "/lib/ld-linux.so.3" ] && [ -z "$(uname -m | grep 64)" ]; then',
+                '      setsid /lib/ld-linux.so.3 --library-path "$SVC/bin/lib" "$SVC/bin/node18" "$SVC/launch.js" >"$SVC/launch.log" 2>&1 </dev/null &',
+                '    else',
+                '      setsid node "$SVC/launch.js" >"$SVC/launch.log" 2>&1 </dev/null &',
+                '    fi;',
+                '  fi;',
+                'fi;'
+            ].join(' ');
+
+            hbBridge.onservicecallback = function(res) {
+                try {
+                    var r = JSON.parse(res);
+                    log('Homebrew Channel: ' + (r.returnValue ? 'executado' : (r.errorText || 'erro')));
+                } catch (_) {
+                    log('HB callback: ' + (res ? res.substring(0, 40) : 'ok'));
+                }
+            };
+            hbBridge.call('luna://org.webosbrew.hbchannel.service/exec', JSON.stringify({ command: cmd }));
+            log('Chamando Homebrew Channel service...');
+        } catch (e) {
+            log('HB exec exc: ' + e.message);
+        }
+
+        // 2. Native Luna Service Bridge Method (for standard webOS service registration)
+        try {
+            var lunaBridge = new PalmServiceBridge();
+            lunaBridge.onservicecallback = function(response) {
                 try {
                     var data = JSON.parse(response);
+                    log('Luna Service: ' + (data.ready ? 'pronto' : (data.errorText || 'iniciado')));
                     if (data.ready) redirect();
                 } catch (_) {}
             };
-            bridge.call('luna://io.strem.tv.adapted.server/start', '{}');
-        } catch (e) {}
+            lunaBridge.call('luna://io.strem.tv.adapted.server/start', '{}');
+            log('Chamando io.strem.tv.adapted.server/start...');
+        } catch (e) {
+            log('Luna bridge exc: ' + e.message);
+        }
 
-        // 2. Fast Active Polling (immediate redirect when port is ready)
+        // 3. Fast Active Polling (checks /ping endpoint and /logo.png)
         function pollServer() {
             if (done) return;
+            attempts++;
+
+            // XMLHttpRequest to /ping
+            try {
+                var xhr = new XMLHttpRequest();
+                xhr.open('GET', 'http://127.0.0.1:8085/ping?t=' + Date.now(), true);
+                xhr.timeout = 1200;
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4 && xhr.status === 200) {
+                        redirect();
+                    }
+                };
+                xhr.send();
+            } catch (_) {}
+
+            // Image fallback
             var img = new Image();
             img.onload = redirect;
             img.onerror = function() {
-                setTimeout(pollServer, 200);
+                if (!done) {
+                    if (attempts % 10 === 0) {
+                        log('Aguardando resposta do servidor... (' + Math.floor(attempts / 5) + 's)');
+                    }
+                    setTimeout(pollServer, 200);
+                }
             };
-            img.src = 'http://127.0.0.1:8085/icon.png?t=' + Date.now();
+            img.src = 'http://127.0.0.1:8085/logo.png?t=' + Date.now();
         }
         pollServer();
 
-        // 3. Timeout fallback after 20s
+        // 4. Extended Timeout fallback (45 seconds)
         setTimeout(function() {
             if (done) return;
             document.getElementById('splash').style.display = 'none';
-            document.getElementById('errorBox').style.display = 'flex';
-        }, 20000);
+            var errBox = document.getElementById('errorBox');
+            errBox.style.display = 'flex';
+            var det = document.getElementById('errorDetails');
+            if (det) {
+                det.innerText = 'Diagnóstico:\n' + debugLogs.join('\n');
+            }
+        }, 45000);
     </script>
 </body>
 </html>

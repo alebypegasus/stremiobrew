@@ -1,27 +1,44 @@
 process.env.NODE_PATH = (process.env.NODE_PATH || '') + ':/usr/lib/node_modules:/usr/lib/nodejs';
-require('module').Module._initPaths();
+try { require('module').Module._initPaths(); } catch (_) {}
 process.env.APP_PATH = process.env.APP_PATH || __dirname;
 
 var http = require('http');
 var fs = require('fs');
 var path = require('path');
-var Service = require('webos-service');
 
-var service = new Service('io.strem.tv.adapted.server');
+var DIR = __dirname;
+function dbg(m) {
+    try {
+        var line = new Date().toISOString() + ' ' + m + '\n';
+        fs.appendFileSync(path.join(DIR, 'launch.log'), line);
+        fs.appendFileSync('/tmp/stremio-adapted.log', line);
+    } catch (_) {}
+}
+dbg('launch.js init (pid=' + process.pid + ', node=' + process.version + ', arch=' + process.arch + ')');
+
+process.on('uncaughtException', function(err) {
+    dbg('UNCAUGHT EXCEPTION: ' + (err && (err.stack || err.message || err)));
+});
+
 var ready = false;
 var pendingMessages = [];
+var service = null;
 
-// Keep the service alive indefinitely
-service.activityManager.create('keepAlive', function() {});
-
-// Register the start method — responds once the HTTP server is listening
-service.register('start', function(message) {
-    if (ready) {
-        message.respond({ ready: true });
-    } else {
-        pendingMessages.push(message);
-    }
-});
+try {
+    var Service = require('webos-service');
+    service = new Service('io.strem.tv.adapted.server');
+    service.activityManager.create('keepAlive', function() {});
+    service.register('start', function(message) {
+        if (ready) {
+            message.respond({ ready: true });
+        } else {
+            pendingMessages.push(message);
+        }
+    });
+    dbg('webos-service registered successfully');
+} catch (e) {
+    dbg('webos-service registration skipped: ' + (e && e.message));
+}
 
 // Static file serving with High-Performance In-Memory RAM Cache
 var wwwDir = path.join(__dirname, 'www');
@@ -140,9 +157,34 @@ function proxyToStreaming(req, res) {
 // Single server: static RAM cache first, then proxy to streaming server
 var server = http.createServer(function(req, res) {
     var urlPath = req.url.split('?')[0];
+
+    if (urlPath === '/ping') {
+        res.writeHead(200, {
+            'Content-Type': 'text/plain; charset=utf-8',
+            'Access-Control-Allow-Origin': '*',
+            'Cache-Control': 'no-cache, no-store, must-revalidate'
+        });
+        res.end('PONG');
+        return;
+    }
+
+    if (urlPath === '/launch.log' || urlPath === '/debug') {
+        try {
+            var logPath = path.join(DIR, 'launch.log');
+            var logContent = fs.existsSync(logPath) ? fs.readFileSync(logPath, 'utf8') : 'No log yet';
+            res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Access-Control-Allow-Origin': '*' });
+            res.end(logContent);
+            return;
+        } catch (_) {}
+    }
+
     serveStatic(urlPath, res, function() {
         proxyToStreaming(req, res);
     });
+});
+
+server.on('error', function(err) {
+    dbg('HTTP server error: ' + (err && (err.stack || err.message || err)));
 });
 
 server.keepAliveTimeout = 65000;
@@ -151,17 +193,26 @@ server.headersTimeout = 66000;
 var PORT = parseInt(process.env.PORT || '8085', 10);
 server.listen(PORT, function() {
     ready = true;
-    // Respond to any start calls that arrived before the server was ready
-    pendingMessages.forEach(function(msg) { msg.respond({ ready: true }); });
-    pendingMessages = [];
+    dbg('HTTP server listening on :' + PORT);
+    if (service) {
+        pendingMessages.forEach(function(msg) {
+            try { msg.respond({ ready: true }); } catch (_) {}
+        });
+        pendingMessages = [];
+    }
 });
 
-// Point the streaming server at the bundled ffmpeg binaries with 64-bit/32-bit fallback.
-var is64 = process.arch === 'arm64' || (function(){
-    try { return require('child_process').execSync('uname -m').toString().indexOf('64') >= 0; } catch(_) { return true; }
-})();
+// Auto-detect 64-bit or 32-bit architecture safely
+var is64 = process.arch === 'arm64';
+if (!is64) {
+    try {
+        var uname = require('child_process').execSync('uname -m', { timeout: 1000 }).toString();
+        is64 = uname.indexOf('64') >= 0 || uname.indexOf('aarch64') >= 0;
+    } catch (_) {}
+}
+
 var ffmpegBin = path.join(__dirname, 'bin', is64 ? 'ffmpeg' : 'ffmpeg_arm32');
-var ffprobeBin = path.join(__dirname, 'bin', is64 ? 'ffprobe' : 'ffprobe_arm32');
+var ffprobeBin = path.join(__dirname, 'bin', is64 ? 'ffprobe' : (fs.existsSync(path.join(__dirname, 'bin', 'ffprobe_arm32')) ? 'ffprobe_arm32' : 'ffmpeg_arm32'));
 if (!fs.existsSync(ffmpegBin)) ffmpegBin = path.join(__dirname, 'bin', 'ffmpeg');
 if (!fs.existsSync(ffprobeBin)) ffprobeBin = path.join(__dirname, 'bin', 'ffprobe');
 
@@ -169,4 +220,11 @@ process.env.FFMPEG_BIN = ffmpegBin;
 process.env.FFPROBE_BIN = ffprobeBin;
 process.env.NO_CORS = '1';
 
-require('./server.js');
+dbg('Selected ffmpeg: ' + ffmpegBin + ', ffprobe: ' + ffprobeBin + ' (is64=' + is64 + ')');
+
+try {
+    require('./server.js');
+    dbg('server.js streaming engine loaded');
+} catch (err) {
+    dbg('server.js error: ' + (err && (err.stack || err.message || err)));
+}
