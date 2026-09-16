@@ -16,16 +16,16 @@
       "fullDescriptionUrl": "apps/io.strem.tv.adapted/full_description.html",
       "manifest": {
         "id": "io.strem.tv.adapted",
-        "version": "5.0.4",
+        "version": "5.0.5",
         "type": "web",
         "title": "[TESTE] Stremio Modern Adapted (Experimental)",
         "appDescription": "VERSÃO DE TESTE: Adaptação experimental construída 100% com base total no Stremio Modern (Theater v1.9.2), porta 8085 dedicada e suporte multi-arquitetura.",
         "iconUri": "https://stremiobrew.vercel.app/icon-modern.png",
         "sourceUrl": "https://github.com/alebypegasus/stremiobrew",
         "rootRequired": false,
-        "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.adapted_5.0.4_all.ipk",
+        "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.adapted_5.0.5_all.ipk",
         "ipkHash": {
-          "sha256": "0a0e09f602e1b5f25a325c682964c80e4b56481f32e54b07eb4c9b11f87595d9"
+          "sha256": "9e0a8f9a71000032c0c6b946c87fe6dbcecd71deb2ff05e5667a4c31b2318257"
         }
       }
     }

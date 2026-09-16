@@ -3,10 +3,10 @@ const path = require('path');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
 
-console.log('=== Stremiobrew Adapted Package & Test Instance Builder (v5.0.4) ===');
+console.log('=== Stremiobrew Adapted Package & Test Instance Builder (v5.0.5) ===');
 
 const BASE_URL = 'https://stremiobrew.vercel.app';
-const ADAPTED_VERSION = '5.0.4';
+const ADAPTED_VERSION = '5.0.5';
 const ADAPTED_ID = 'io.strem.tv.adapted';
 const ADAPTED_IPK = `${ADAPTED_ID}_${ADAPTED_VERSION}_all.ipk`;
 
