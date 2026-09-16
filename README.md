@@ -53,7 +53,7 @@ node build.js
 
 ### 🧪 Instância de Teste / Experimental (Stremio Adapted)
 
-Para testar a versão adaptada separadamente sem misturar com as versões estáveis na loja:
+Versão experimental baseada integralmente no **Stremio Modern** (Stremio Theater v1.9.2), empacotada com suporte multi-arquitetura (binários ARM64 e armv7/32-bit), serviço em porta isolada (`8085`) e ID dedicado (`io.strem.tv.adapted`):
 
 - **Feed do Repositório de Teste:**
 

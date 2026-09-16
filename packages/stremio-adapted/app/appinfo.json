@@ -1,0 +1,14 @@
+{
+    "id": "io.strem.tv.adapted",
+    "version": "5.0.4",
+    "vendor": "Stremiobrew",
+    "type": "web",
+    "main": "index.html",
+    "title": "Stremio Adapted (Test)",
+    "icon": "icon.png",
+    "largeIcon": "icon.png",
+    "bgColor": "#0c0b11",
+    "splashBackground": "splash.png",
+    "requiredMemory": 256,
+    "handlesRelaunch": true
+}

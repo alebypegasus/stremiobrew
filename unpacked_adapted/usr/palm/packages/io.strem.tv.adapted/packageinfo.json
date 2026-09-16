@@ -1,8 +1,0 @@
-{
-  "id": "io.strem.tv.adapted",
-  "version": "5.0.4",
-  "app": "io.strem.tv.adapted",
-  "services": [
-    "io.strem.tv.adapted.server"
-  ]
-}

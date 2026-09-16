@@ -10,48 +10,17 @@ const ADAPTED_VERSION = '5.0.4';
 const ADAPTED_ID = 'io.strem.tv.adapted';
 const ADAPTED_IPK = `${ADAPTED_ID}_${ADAPTED_VERSION}_all.ipk`;
 
-console.log(`\n[1/3] Processing Adapted Test Package (${ADAPTED_IPK})...`);
+console.log(`\n[1/3] Packaging Adapted Test Package (${ADAPTED_IPK}) from Stremio Modern total base...`);
 
-if (fs.existsSync('unpacked_adapted') && fs.existsSync('control_adapted')) {
-  console.log(' - Compressing data.tar.gz for adapted package...');
-  execSync('cd unpacked_adapted && tar -czf ../data_adapted.tar.gz .', { stdio: 'inherit' });
+const adaptedSourceDir = path.join(__dirname, 'packages/stremio-adapted');
+if (fs.existsSync(path.join(adaptedSourceDir, 'app')) && fs.existsSync(path.join(adaptedSourceDir, 'service/www'))) {
+  console.log(' - Packaging adapted IPK with ares-package (Stremio Modern total base)...');
+  execSync(`cd "${adaptedSourceDir}" && npx -y -p @webosose/ares-cli ares-package --no-minify app service -o .`, { stdio: 'inherit' });
+  fs.copyFileSync(path.join(adaptedSourceDir, ADAPTED_IPK), ADAPTED_IPK);
+}
 
-  console.log(' - Compressing control.tar.gz for adapted package...');
-  execSync('cd control_adapted && tar -czf ../control_adapted.tar.gz .', { stdio: 'inherit' });
-
-  function createArArchive(files, outputPath) {
-    const buffers = [Buffer.from('!<arch>\n', 'ascii')];
-    for (const file of files) {
-      const filename = path.basename(file.name);
-      const content = file.data;
-      const size = content.length;
-      
-      const header = Buffer.alloc(60, 0x20);
-      header.write(filename, 0, 16, 'ascii');
-      header.write(String(Math.floor(Date.now() / 1000)), 16, 12, 'ascii');
-      header.write('0', 28, 6, 'ascii');
-      header.write('0', 34, 6, 'ascii');
-      header.write('100644', 40, 8, 'ascii');
-      header.write(String(size), 48, 10, 'ascii');
-      header.write('`\n', 58, 2, 'ascii');
-      
-      buffers.push(header);
-      buffers.push(content);
-      if (size % 2 !== 0) buffers.push(Buffer.from('\n', 'ascii'));
-    }
-    fs.writeFileSync(outputPath, Buffer.concat(buffers));
-  }
-
-  const debianBinary = Buffer.from('2.0\n', 'ascii');
-  const adaptedFiles = [
-    { name: 'debian-binary', data: debianBinary },
-    { name: 'control.tar.gz', data: fs.readFileSync('control_adapted.tar.gz') },
-    { name: 'data.tar.gz', data: fs.readFileSync('data_adapted.tar.gz') }
-  ];
-  createArArchive(adaptedFiles, ADAPTED_IPK);
-
-  try { fs.unlinkSync('control_adapted.tar.gz'); } catch (_) {}
-  try { fs.unlinkSync('data_adapted.tar.gz'); } catch (_) {}
+if (!fs.existsSync(ADAPTED_IPK)) {
+  throw new Error(`Adapted IPK not found: ${ADAPTED_IPK}`);
 }
 
 const adaptedIpkBuf = fs.readFileSync(ADAPTED_IPK);
@@ -69,11 +38,11 @@ const adaptedManifest = {
   id: ADAPTED_ID,
   version: ADAPTED_VERSION,
   type: 'web',
-  title: '[TESTE] Stremio Adapted LG (Experimental)',
-  appDescription: 'VERSÃO DE TESTE: Adaptação experimental da interface Stremio Theater com tipografia Plus Jakarta Sans, tela de detalhes completa, gaveta de streams aprimorada e seleção automática de áudio sobre base leve.',
-  iconUri: `${BASE_URL}/icon.png`,
+  title: '[TESTE] Stremio Modern Adapted (Experimental)',
+  appDescription: 'VERSÃO DE TESTE: Adaptação experimental construída 100% com base total no Stremio Modern (Theater v1.9.2), porta 8085 dedicada e suporte multi-arquitetura.',
+  iconUri: `${BASE_URL}/icon-modern.png`,
   sourceUrl: 'https://github.com/alebypegasus/stremiobrew',
-  rootRequired: true,
+  rootRequired: false,
   ipkUrl: `${BASE_URL}/${ADAPTED_IPK}`,
   ipkHash: { sha256: adaptedSha256 }
 };
@@ -84,20 +53,19 @@ fs.writeFileSync(`api/apps/${ADAPTED_ID}/releases/latest.json`, JSON.stringify(a
 const adaptedDescriptionHtml = `<div style="font-family:sans-serif;color:#e5e7eb;line-height:1.6">
   <div style="background:rgba(239,68,68,0.2);border:1px solid #ef4444;border-radius:8px;padding:12px 16px;margin-bottom:16px;">
     <b style="color:#ef4444;font-size:1.1rem;">⚠️ ATENÇÃO: VERSÃO DE TESTE / EXPERIMENTAL</b>
-    <p style="margin:4px 0 0;font-size:0.95rem;">Este pacote foi criado para testes e validação da adaptação da interface Stremio Theater em Smart TVs LG antigas (webOS 3.x/4.x/5.x). Não substitui a versão estável oficial.</p>
+    <p style="margin:4px 0 0;font-size:0.95rem;">Pacote construído com <b>base total no Stremio Modern (Theater v1.9.2)</b> com porta 8085 dedicada para validação em Smart TVs LG sem interferir nas versões estáveis.</p>
   </div>
 
-  <h2 style="color:#a78bfa;margin-top:0;font-size:1.35rem;">🧪 Stremio Adapted (Test Edition v${ADAPTED_VERSION})</h2>
-  <p>Esta versão une a <b>riqueza visual e estrutural do Stremio Theater</b> (versão comum) à arquitetura de <b>baixo consumo de memória</b> para TVs clássicas.</p>
+  <h2 style="color:#a78bfa;margin-top:0;font-size:1.35rem;">🧪 Stremio Modern Adapted (Test Edition v${ADAPTED_VERSION})</h2>
+  <p>Esta versão utiliza o <b>frontend oficial completo do Stremio Modern</b> (Stremio Theater v1.9.2) com WebAssembly, patches de vídeo e controle remoto, empacotada em uma instância isolada.</p>
 
-  <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">✨ O que há de novo nesta adaptação:</h3>
+  <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">✨ Especificações do Pacote de Teste:</h3>
   <ul>
-    <li><b>Tipografia Oficial:</b> Fonte <i>Plus Jakarta Sans</i> embutida localmente.</li>
-    <li><b>Tela de Detalhes Aprimorada:</b> Badges de Classificação Indicativa, nota IMDb em destaque (★), ano, duração e sinopse completa.</li>
-    <li><b>Gaveta de Streams Avançada:</b> Tags destacadas de resolução (4K, 1080p, 720p), HDR, Debrid ([RD+], [AD+], [TB+]), seeds e tamanho do arquivo.</li>
-    <li><b>Seleção Automática de Áudio:</b> Auto-seleção do idioma preferido do seu perfil Stremio via Luna Bridge.</li>
-    <li><b>Controle Remoto LG:</b> Botões coloridos (Vermelho=Busca, Verde=Início, Amarelo=Biblioteca, Azul=Descobrir) e botões de mídia mapeados.</li>
-    <li><b>Instância e Porta Dedicadas:</b> Executa na porta 8085 sob o ID <code>io.strem.tv.adapted</code> sem interferir em outras versões instaladas na TV.</li>
+    <li><b>Base Total:</b> Stremio Modern / Stremio Theater v1.9.2 oficial.</li>
+    <li><b>Porta Isolada:</b> Executa na porta <code>8085</code> (evita conflito com o Stremio Modern oficial na porta 8080).</li>
+    <li><b>Suporte Binário Multi-Arquitetura:</b> Detecta automaticamente ARM64 ou ARM32 para ffmpeg/ffprobe.</li>
+    <li><b>Fix de Áudio Nativo:</b> Auto-seleção do idioma preferido da conta Stremio no player webOS.</li>
+    <li><b>Controle LG Magic:</b> Mapeamento completo dos botões coloridos e teclas de mídia.</li>
   </ul>
 </div>
 `;
@@ -113,11 +81,11 @@ const testAppsData = {
   packages: [
     {
       id: ADAPTED_ID,
-      title: '[TESTE] Stremio Adapted (Experimental)',
-      iconUri: `${BASE_URL}/icon.png`,
-      pool: 'non-free',
+      title: '[TESTE] Stremio Modern Adapted (Experimental)',
+      iconUri: `${BASE_URL}/icon-modern.png`,
+      pool: 'main',
       manifestUrl: `${BASE_URL}/api/apps/${ADAPTED_ID}/manifest.json`,
-      shortDescription: '[VERSÃO DE TESTE] Adaptação da interface Stremio Theater para webOS clássico com baixo consumo de RAM.',
+      shortDescription: '[VERSÃO DE TESTE] Construído com base total no Stremio Modern para validação isolada na TV.',
       fullDescriptionUrl: `apps/${ADAPTED_ID}/full_description.html`,
       manifest: adaptedManifest
     }
