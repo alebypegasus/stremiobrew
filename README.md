@@ -45,27 +45,11 @@ Repositório oficial para distribuição de clientes **Stremio** otimizados para
 
 ## 📦 Build e Atualização
 
-Para recompilar ambos os pacotes oficiais e sincronizar manifests e hashes SHA-256:
+Para recompilar ambos os pacotes e sincronizar manifests e hashes SHA-256:
 
 ```bash
 node build.js
 ```
-
-### 🧪 Instância de Teste / Experimental (Stremio Adapted)
-
-Versão experimental baseada integralmente no **Stremio Modern** (Stremio Theater v1.9.2), empacotada com suporte multi-arquitetura (binários ARM64 e armv7/32-bit), serviço em porta isolada (`8085`) e ID dedicado (`io.strem.tv.adapted`):
-
-- **Feed do Repositório de Teste:**
-
-  ```text
-  https://stremiobrew.vercel.app/test.json
-  ```
-
-- **Compilar pacote de teste:**
-
-  ```bash
-  node build_adapted.js
-  ```
 
 ---
 

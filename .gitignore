@@ -4,4 +4,3 @@ node_modules/
 data.tar.gz
 control.tar.gz
 debian-binary
-unpacked_common/
