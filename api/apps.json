@@ -25,7 +25,7 @@
         "rootRequired": false,
         "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv_5.0.4_all.ipk",
         "ipkHash": {
-          "sha256": "31066ba5b978459769fd12cd2011ff99265a33853fbee727956b474954a5a6d7"
+          "sha256": "4c7f2dfa72a198a32b3f9eeb208581f0e0336e195bd68f129683085be754b231"
         }
       }
     },
@@ -48,7 +48,7 @@
         "rootRequired": true,
         "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.beta_5.0.5_all.ipk",
         "ipkHash": {
-          "sha256": "0a519a3095471043447f3e3b383a1c9db012e8702b4456e6b77842852b1dfeec"
+          "sha256": "a2e79b4f9a43717f522468dba5a08452d1268a9d1aaf91cb310c42012c147b3c"
         }
       }
     }
