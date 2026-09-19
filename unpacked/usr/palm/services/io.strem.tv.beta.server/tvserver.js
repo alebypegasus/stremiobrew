@@ -583,7 +583,7 @@ function playerPage(stream, ctx, headers) {
 '@keyframes ytDash{0%{stroke-dasharray:1,200;stroke-dashoffset:0;}50%{stroke-dasharray:90,200;stroke-dashoffset:-35px;}100%{stroke-dasharray:90,200;stroke-dashoffset:-125px;}}' +
 '#bufMsg{display:none;}' +
 '/* Loading Splash */' +
-'#load{position:fixed;top:0;left:0;right:0;bottom:0;background:#08070d center/cover no-repeat;z-index:12;transition:opacity .35s ease;pointer-events:none;}' +
+'#load{position:fixed;top:0;left:0;right:0;bottom:0;background:#08070d center/cover no-repeat;z-index:20;display:none;opacity:0;pointer-events:none;transition:opacity .25s ease;}' +
 '#load:before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at center,rgba(14,13,20,0.65),rgba(14,13,20,0.95));}' +
 '#load .lwrap{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;padding:0 40px;}' +
 '#lname{font-size:52px;font-weight:800;max-width:85%;margin:0 auto 16px;text-shadow:0 4px 24px #000;}' +
@@ -917,29 +917,28 @@ function playerPage(stream, ctx, headers) {
 '    lastPlayTime=v.currentTime;lastCheckTime=now;stallNudgeCount=0;' +
 '  }' +
 '},1000);' +
-'function hideLoad(){clearTimeout(hideLoadT);load.style.opacity="0";load.style.pointerEvents="none";setTimeout(function(){load.style.display="none";},300);buf.className="";}' +
-'function doPlay(){try{var p=v.play();if(p&&p.catch){p.catch(function(){showToast("Pressione OK para reproduzir");});}}catch(e){}}' +
+'function hideLoad(){if(load){load.style.display="none";load.style.opacity="0";load.style.pointerEvents="none";}if(buf)buf.className="";}' +
+'function doPlay(){try{var p=v.play();if(p&&p.catch){p.catch(function(){});}}catch(e){}}' +
 'setTimeout(doPlay,50);' +
-'document.addEventListener("click",function(){if(v.paused)doPlay();if(load.style.display!=="none")hideLoad();});' +
-'var hideLoadT=setTimeout(function(){if(load.style.display!=="none"&&!hasError){var st=document.getElementById("loadStatus");if(st)st.textContent=(URL.indexOf(":11470")>=0?"Conectando aos peers do torrent…":"Aguardando resposta do servidor…");}},2500);' +
-'setTimeout(function(){if(load.style.display!=="none"&&!hasError){hideLoad();}},4500);' +
-'function onPlaying(){hideLoad();showHUD();lazyProbe();checkResume();}' +
+'document.addEventListener("click",function(){if(v.paused)doPlay();if(load&&load.style.display!=="none"&&!hasError)hideLoad();});' +
+'function onPlaying(){hideLoad();lazyProbe();checkResume();}' +
 'v.addEventListener("playing",onPlaying);' +
-'v.addEventListener("loadeddata",function(){setTimeout(onPlaying,80);checkResume();});' +
-'v.addEventListener("canplay",function(){buf.className="";if(load.style.display!=="none")hideLoad();});' +
+'v.addEventListener("loadedmetadata",hideLoad);' +
+'v.addEventListener("loadeddata",function(){hideLoad();checkResume();});' +
+'v.addEventListener("canplay",function(){if(buf)buf.className="";hideLoad();});' +
 'var bufTimer=null;' +
-'v.addEventListener("waiting",function(){if(!v.paused&&!v.seeking&&v.readyState<3&&load.style.display==="none"){buf.className="show";clearTimeout(bufTimer);bufTimer=setTimeout(function(){buf.className="";},2500);}});' +
+'v.addEventListener("waiting",function(){if(!v.paused&&!v.seeking&&v.readyState<3&&!hasError){buf.className="show";clearTimeout(bufTimer);bufTimer=setTimeout(function(){buf.className="";},1500);}});' +
 'var hasError=false;' +
 'v.addEventListener("error",function(){' +
-'  hasError=true;buf.className="";' +
+'  hasError=true;if(buf)buf.className="";' +
 '  try{sessionStorage.setItem("stremio_failed_stream",ORIG_URL||URL);}catch(e){}' +
 '  var isTor=(URL.indexOf(":11470")>=0);' +
 '  var isLiveStream=isLive||(TYPE==="tv"||TYPE==="channel"||TYPE==="iptv");' +
 '  var msg=isTor?"Torrent sem seeds suficientes ou formato não suportado pela TV. Escolha outro stream na lista.":(isLiveStream?"Transmissão de TV indisponível ou sinal instável no momento. Escolha outro canal ou link.":"Erro de conexão com o link de vídeo. Escolha outro link na lista.");' +
 '  lname.innerHTML="<div style=\\"font-size:24px;max-width:760px;margin:0 auto;line-height:1.4;background:rgba(14,13,20,0.96);padding:32px;border-radius:18px;border:1px solid rgba(123,91,245,0.35);box-shadow:0 14px 44px rgba(0,0,0,0.85);\\"><div style=\\"font-size:28px;font-weight:800;color:#ff5555;margin-bottom:12px\\">⚠️ Falha na Reprodução</div><div style=\\"font-size:20px;color:rgba(255,255,255,0.85);margin-bottom:20px\\">"+msg+"</div><div id=\\"errBackBtn\\" onclick=\\"exit();return false;\\" style=\\"display:inline-block;padding:14px 34px;background:linear-gradient(135deg,#8a6cf5,#6842e8);color:#fff;border-radius:12px;font-weight:700;font-size:22px;box-shadow:0 6px 20px rgba(104,66,232,0.5);cursor:pointer;\\">Voltar aos Streams</div></div>";' +
-'  load.style.display="block";load.style.opacity="1";' +
+'  load.style.display="block";load.style.opacity="1";load.style.pointerEvents="auto";' +
 '});' +
-'function showHUD(){hud.className="show";hudState="visible";if(typeof paintFocus==="function")paintFocus();clearTimeout(hudTimer);hudTimer=setTimeout(function(){if(hudState==="visible"&&!v.paused&&menuState==="hidden"){hud.className="";hudState="hidden";}},4000);}' +
+'function showHUD(){hud.className="show";hudState="visible";if(typeof paintFocus==="function")paintFocus();clearTimeout(hudTimer);var hideDelay=v.paused?6000:3500;hudTimer=setTimeout(function(){if(hudState==="visible"&&menuState==="hidden"){hud.className="";hudState="hidden";}},hideDelay);}' +
 'function hideHUD(){hud.className="";hudState="hidden";clearTimeout(hudTimer);}' +
 'function togglePlay(){if(v.paused)v.play();else v.pause();updatePlayIcons();showHUD();}' +
 'function updatePlayIcons(){var p=v.paused;document.getElementById("icPlay").style.display=p?"block":"none";document.getElementById("icPause").style.display=p?"none":"block";}' +
@@ -1419,9 +1418,10 @@ function playerPage(stream, ctx, headers) {
 'if(btnRateLike){btnRateLike.addEventListener("click",function(){saveLiked(true);showToast("❤️ Adicionado aos seus Curtidos!");setTimeout(exit,800);});btnRateLike.addEventListener("mouseenter",function(){focusZone="rate";rateFocusIdx=0;paintFocus();});}' +
 'if(btnRateDislike){btnRateDislike.addEventListener("click",function(){saveLiked(false);showToast("Obrigado pelo feedback!");setTimeout(exit,600);});btnRateDislike.addEventListener("mouseenter",function(){focusZone="rate";rateFocusIdx=1;paintFocus();});}' +
 'if(btnRateSkip){btnRateSkip.addEventListener("click",exit);btnRateSkip.addEventListener("mouseenter",function(){focusZone="rate";rateFocusIdx=2;paintFocus();});}' +
-'var lastMouseMove=0;' +
+'var pageInitTime=Date.now();var lastMouseMove=0;' +
 'document.addEventListener("mousemove",function(){' +
 '  var now=Date.now();' +
+'  if(now-pageInitTime<2500)return;' +
 '  if(now-lastMouseMove>350){lastMouseMove=now;showHUD();}' +
 '});' +
 'window.addEventListener("wheel",function(e){' +
@@ -1444,6 +1444,9 @@ function playerPage(stream, ctx, headers) {
 '}' +
 'hud.addEventListener("click",function(e){' +
 '  if(e.target===hud){if(hudState==="hidden")showHUD();else togglePlay();}' +
+'});' +
+'v.addEventListener("click",function(){' +
+'  if(hudState==="hidden")showHUD();else togglePlay();' +
 '});' +
 '})();<\/script></body></html>';
   waited = waited || 0;
