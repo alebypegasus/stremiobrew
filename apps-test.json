@@ -8,24 +8,24 @@
   "packages": [
     {
       "id": "io.strem.tv.adapted",
-      "title": "[TESTE] Stremio Modern Adapted (Experimental)",
+      "title": "[TESTE] Stremio Adapted (Experimental)",
       "iconUri": "https://stremiobrew.vercel.app/icon-modern.png",
       "pool": "main",
       "manifestUrl": "https://stremiobrew.vercel.app/api/apps/io.strem.tv.adapted/manifest.json",
-      "shortDescription": "[VERSÃO DE TESTE] Construído com base total no Stremio Modern para validação isolada na TV.",
+      "shortDescription": "[VERSÃO DE TESTE] Construído do zero na base tradicional para Smart TVs LG mais antigas.",
       "fullDescriptionUrl": "apps/io.strem.tv.adapted/full_description.html",
       "manifest": {
         "id": "io.strem.tv.adapted",
-        "version": "5.0.5",
+        "version": "5.0.6",
         "type": "web",
-        "title": "[TESTE] Stremio Modern Adapted (Experimental)",
-        "appDescription": "VERSÃO DE TESTE: Adaptação experimental construída 100% com base total no Stremio Modern (Theater v1.9.2), porta 8085 dedicada e suporte multi-arquitetura.",
+        "title": "[TESTE] Stremio Adapted (Experimental)",
+        "appDescription": "VERSÃO DE TESTE: Construída do zero com base 100% no Stremio Tradicional Completo, adaptada especificamente para Smart TVs LG mais antigas (webOS 3.x/4.x, Chromium 53, zero WASM) na porta 8085.",
         "iconUri": "https://stremiobrew.vercel.app/icon-modern.png",
         "sourceUrl": "https://github.com/alebypegasus/stremiobrew",
         "rootRequired": false,
-        "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.adapted_5.0.5_all.ipk",
+        "ipkUrl": "https://stremiobrew.vercel.app/io.strem.tv.adapted_5.0.6_all.ipk",
         "ipkHash": {
-          "sha256": "75562c89806a0c4a638ef919b4a59d25ccb8499e798d4959208d8cec78488665"
+          "sha256": "8491f739a8e48438eb19f17cb46c5a95e127b1c7a9e5e20461a37dc620df05eb"
         }
       }
     }

@@ -1,6 +1,6 @@
 {
     "id": "io.strem.tv.adapted",
-    "version": "5.0.5",
+    "version": "5.0.6",
     "vendor": "Stremiobrew",
     "type": "web",
     "main": "index.html",
