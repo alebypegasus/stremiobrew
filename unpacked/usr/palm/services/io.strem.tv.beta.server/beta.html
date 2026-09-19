@@ -234,6 +234,7 @@ body.trailer #dWrap { opacity: .15; }
 .tag-tor { background: rgba(0,242,254,.2); color: #00f2fe; border: 1px solid rgba(0,242,254,.4); }
 .tag-aud { background: rgba(0,230,118,.2); color: #00e676; }
 .tag-sz { background: rgba(255,255,255,.1); color: rgba(255,255,255,.8); font-variant-numeric: tabular-nums; }
+.tag-err { background: rgba(255,85,85,.25); color: #ff7777; border: 1px solid rgba(255,85,85,.5); }
 .st .b { margin-top: 8px; font-size: 20px; line-height: 1.35; color: rgba(255,255,255,.75); max-height: 60px; overflow: hidden; }
 .st.f { background: #7b5bf5; box-shadow: 0 0 0 3px #fff, 0 8px 24px rgba(123,91,245,.5); transform: scale(1.02); }
 .st.f .b { color: #fff; }
@@ -2828,30 +2829,16 @@ var DEFAULT_ADDONS = [
     transportUrl: 'https://meufutebol.oneplayhd.com/manifest.json',
     manifest: {
       id: 'org.meufutebol',
-      name: 'Meu Futebol',
-      version: '1.0.0',
-      description: 'Canais de futebol e esportes ao vivo',
+      name: 'Canais de TV Ao Vivo',
+      version: '1.0.1',
+      description: 'Canais de TV, esportes e transmissões ao vivo',
       logo: 'https://embedcanaisdetv.com/images/premiere.png',
       resources: ['catalog', 'meta', 'stream'],
       types: ['tv'],
       catalogs: [
-        { type: 'tv', id: 'meufutebol_channels', name: 'Futebol Ao Vivo' }
+        { type: 'tv', id: 'meufutebol_channels', name: 'Canais de TV Ao Vivo' }
       ],
       idPrefixes: ['meufutebol:']
-    }
-  },
-  {
-    transportUrl: 'https://v3-channels.strem.io/manifest.json',
-    manifest: {
-      id: 'com.linvo.stremiochannels',
-      name: 'Canais de TV',
-      version: '1.30.7',
-      description: 'Canais de TV e transmissões ao vivo',
-      resources: ['catalog', 'meta'],
-      types: ['channel', 'tv'],
-      catalogs: [
-        { type: 'channel', id: 'top', name: 'Canais em Destaque' }
-      ]
     }
   },
   {
@@ -2869,19 +2856,17 @@ var DEFAULT_ADDONS = [
 
 function mergeDefaultAddons(userList){
   if (!userList || !userList.length) return DEFAULT_ADDONS;
-  var hasKitsu = false, hasChannels = false, hasCinemeta = false, hasFutebol = false;
+  var hasKitsu = false, hasCinemeta = false, hasFutebol = false;
   for (var i = 0; i < userList.length; i++){
     var mid = (userList[i] && userList[i].manifest && userList[i].manifest.id) || '';
     if (mid === 'community.anime.kitsu' || mid.indexOf('kitsu') >= 0) hasKitsu = true;
     if (mid === 'org.meufutebol' || mid.indexOf('futebol') >= 0) hasFutebol = true;
-    if (mid === 'com.linvo.stremiochannels' || mid.indexOf('channel') >= 0 || mid.indexOf('iptv') >= 0) hasChannels = true;
     if (mid === 'com.linvo.cinemeta' || mid.indexOf('cinemeta') >= 0) hasCinemeta = true;
   }
   var merged = userList.slice();
   if (!hasCinemeta) merged.unshift(DEFAULT_ADDONS[0]);
   if (!hasKitsu) merged.push(DEFAULT_ADDONS[1]);
   if (!hasFutebol) merged.push(DEFAULT_ADDONS[2]);
-  if (!hasChannels) merged.push(DEFAULT_ADDONS[3]);
   return merged;
 }
 
@@ -3000,29 +2985,21 @@ function homeCatalogs(){
     key: 'kitsu_airing'
   });
 
-  // 9. TV (Canais & TV Ao Vivo)
+  // 9. TV (Canais de TV & Esportes Ao Vivo)
   out.push({
-    title: '📡 ' + t('Canais & TV Ao Vivo'),
-    type: 'channel',
-    url: 'https://v3-channels.strem.io/catalog/channel/top.json',
-    key: 'tv_channels_top'
-  });
-
-  // 10. Futebol (Meu Futebol / Esportes Ao Vivo)
-  out.push({
-    title: '⚽ ' + t('Futebol Ao Vivo'),
+    title: '📺 ' + t('Canais de TV & Esportes Ao Vivo'),
     type: 'tv',
     url: 'https://meufutebol.oneplayhd.com/catalog/tv/meufutebol_channels.json',
-    key: 'meufutebol_live'
+    key: 'tv_channels_live'
   });
 
-  // 11. E mais... (Catálogos extras dos Addons instalados pelo usuário)
+  // 10. E mais... (Catálogos extras dos Addons instalados pelo usuário)
   var seen = {
     'cin_m_top': true, 'cin_s_top': true,
     'cin_m_ir': true, 'cin_s_ir': true,
     'cin_m_new': true, 'cin_s_new': true,
     'kitsu_popular': true, 'kitsu_airing': true,
-    'tv_channels_top': true, 'meufutebol_live': true
+    'tv_channels_live': true
   };
   for (var i = 0; i < a.length; i++){
     var man = a[i] && a[i].manifest;
@@ -3246,7 +3223,15 @@ function fetchStreams(type, vid, onPart, onDone){
           var url = s.url;
           if (!url && s.infoHash) url = 'http://127.0.0.1:11470/' + s.infoHash + '/' + (s.fileIdx || 0);
           if (!url) continue;
-          out.push({ addon: ad.name, name: s.name || '', title: s.title || s.description || '', url: url });
+          var reqHeaders = (s.behaviorHints && s.behaviorHints.proxyHeaders && s.behaviorHints.proxyHeaders.request) || null;
+          out.push({
+            addon: ad.name,
+            name: s.name || '',
+            title: s.title || s.description || '',
+            url: url,
+            headers: reqHeaders,
+            behaviorHints: s.behaviorHints
+          });
         }
         total += out.length;
         if (out.length) onPart(out, idx, ad.name);
@@ -3884,8 +3869,7 @@ function discDefs(){
     { title: '🔥 ' + t('Séries Lançamentos'), type: 'series', url: CIN + '/catalog/series/year/genre=2025.json', key: 'd_s_new' },
     { title: '⛩️ ' + t('Animes Populares'), type: 'anime', url: 'https://anime-kitsu.strem.fun/catalog/anime/kitsu-anime-popular.json', key: 'd_a_pop' },
     { title: '⛩️ ' + t('Animes Lançamentos'), type: 'anime', url: 'https://anime-kitsu.strem.fun/catalog/anime/kitsu-anime-airing.json', key: 'd_a_airing' },
-    { title: '📡 ' + t('Canais & TV Ao Vivo'), type: 'channel', url: 'https://v3-channels.strem.io/catalog/channel/top.json', key: 'd_tv_top' },
-    { title: '⚽ ' + t('Futebol Ao Vivo'), type: 'tv', url: 'https://meufutebol.oneplayhd.com/catalog/tv/meufutebol_channels.json', key: 'd_fut' }
+    { title: '📺 ' + t('Canais de TV & Esportes Ao Vivo'), type: 'tv', url: 'https://meufutebol.oneplayhd.com/catalog/tv/meufutebol_channels.json', key: 'd_tv_live' }
   ];
   for (var i = 0; i < DGEN.length; i++){
     out.push({ title: DGEN[i] + ' · ' + t('Movies'), type: 'movie', url: CIN + '/catalog/movie/top/genre=' + encodeURIComponent(DGEN[i]) + '.json', key: 'd_g_' + i });
@@ -4113,10 +4097,10 @@ var detail = {
       var av = this.vid || (lib && lib.state && lib.state.timeOffset > 60000 && lib.state.video_id) || this.firstUnwatched();
       this.vid = null;
       if (av){
-        this.selectEpisode(av, !wantAutoStreams, wantAutoStreams);
+        this.selectEpisode(av, true, false);
       }
     } else {
-      self.openStreams(self.id, wantAutoStreams);
+      self.openStreams(self.id, false);
     }
   },
   addBtn: function(label, act){
@@ -4292,7 +4276,9 @@ var streamsUI = {
     this.open = true; this.items = []; this.idx = 0; this.els = []; this.groups = [];
     this.type = type; this.id = id; this.vid = vid;
     this.zone = 'list'; this.filter = -1; this.chipIdx = 0; this.chips = []; this.chipEls = [];
-    this.autoPlayPending = !!autoPlay && (lsRaw('bingeWatch', 'true') === 'true');
+    var failedUrl = null;
+    try { failedUrl = sessionStorage.getItem('stremio_failed_stream'); } catch(e){}
+    this.autoPlayPending = !failedUrl && !!autoPlay && (lsRaw('bingeWatch', 'true') === 'true');
     if (this._autoPlayTimer){ clearTimeout(this._autoPlayTimer); this._autoPlayTimer = null; }
     $('streams').style.display = 'block'; $('stChips').innerHTML = '';
     $('stSub').textContent = (title || '') + (vid && vid.indexOf(':') > 0 ? (' · S' + vid.split(':')[1] + ' E' + vid.split(':')[2]) : '');
@@ -4415,6 +4401,13 @@ var streamsUI = {
           
           var full = (String(s.name || '') + ' ' + String(s.title || '')).toLowerCase();
           var tags = [];
+          var failedUrl = null;
+          try { failedUrl = sessionStorage.getItem('stremio_failed_stream'); } catch(e){}
+          var isFailed = !!(failedUrl && (s.url === failedUrl || failedUrl.indexOf(encodeURIComponent(s.url)) >= 0));
+          if (isFailed){
+            tags.push({ c: 'tag tag-err', t: '⚠️ Falhou anteriormente' });
+            d.style.opacity = '0.65';
+          }
           if (full.indexOf('4k') >= 0 || full.indexOf('2160p') >= 0) tags.push({ c: 'tag tag-4k', t: '4K UHD' });
           else if (full.indexOf('1080p') >= 0) tags.push({ c: 'tag tag-fhd', t: '1080p' });
           else if (full.indexOf('720p') >= 0) tags.push({ c: 'tag tag-hd', t: '720p' });
@@ -4444,7 +4437,14 @@ var streamsUI = {
         })(g.items[i]);
       }
     }
-    this.idx = Math.min(this.idx, Math.max(0, this.items.length - 1));
+    var failedUrl = null;
+    try { failedUrl = sessionStorage.getItem('stremio_failed_stream'); } catch(e){}
+    if (failedUrl && this.items.length > 1 && (this.items[0].url === failedUrl || failedUrl.indexOf(encodeURIComponent(this.items[0].url)) >= 0)){
+      this.idx = 1;
+      this.autoPlayPending = false;
+    } else {
+      this.idx = Math.min(this.idx, Math.max(0, this.items.length - 1));
+    }
     this.paint();
     if (this.autoPlayPending && this.items.length > 0){
       if (this._autoPlayTimer) clearTimeout(this._autoPlayTimer);
@@ -4463,7 +4463,7 @@ var streamsUI = {
     var backHash = 'beta#detail/' + this.type + '/' + this.id + (this.vid !== this.id ? ('/' + this.vid) : '');
     var m = detail.meta || detail.itemData || {};
     if (s.stored) playStored(s.stored, backHash);
-    else playUrl(s.url, this.type, this.id, this.vid, backHash, m);
+    else playUrl(s.url, this.type, this.id, this.vid, backHash, m, s.headers);
   },
   paint: function(){
     setF(this.els, this.zone === 'list' ? this.idx : -1);
@@ -5111,7 +5111,7 @@ var settings = {
 /* =========================================================
    13. Playback Helpers & Long-Press Menu
    ========================================================= */
-function playUrl(url, type, id, vid, backHash, itemData){
+function playUrl(url, type, id, vid, backHash, itemData, headers){
   itemData = itemData || {};
   var name = itemData.name || itemData.title || '';
   var poster = itemData.poster || '';
@@ -5127,6 +5127,9 @@ function playUrl(url, type, id, vid, backHash, itemData){
     '&poster=' + encodeURIComponent(poster) +
     '&bg=' + encodeURIComponent(bg) +
     '&logo=' + encodeURIComponent(logo);
+  if (headers && Object.keys(headers).length){
+    u += '&h=' + encodeURIComponent(JSON.stringify(headers));
+  }
   location.assign(u);
 }
 function resumeSearch(id, vid){
@@ -5639,7 +5642,7 @@ function boot(){
   showScr('home'); home.enter();
   if (m){
     var vid = m[3] ? decodeURIComponent(m[3]) : null;
-    goScr('detail', { type: m[1], id: m[2], vid: vid, autoStreams: true });
+    goScr('detail', { type: m[1], id: m[2], vid: vid, autoStreams: false });
   }
   else if (ms) goScr('sim', { type: ms[1], id: ms[2] });
   try { history.replaceState(history.state, '', '/beta'); } catch(e){}

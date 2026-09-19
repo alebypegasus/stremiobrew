@@ -539,7 +539,7 @@ function cleanTitle(stream) {
   return stream.name || 'Stremio';
 }
 
-function playerPage(stream, ctx) {
+function playerPage(stream, ctx, headers) {
   var streamUrl = stream.url || '';
   ctx = ctx || {};
   var meta = ctx.meta || {};
@@ -551,141 +551,154 @@ function playerPage(stream, ctx) {
     ? 'http://127.0.0.1:8080/beta#detail/' + encodeURIComponent(ctx.type || '') + '/' + encodeURIComponent(ctx.id || '') + '/' + encodeURIComponent(nextVid)
     : 'http://127.0.0.1:8080/#/detail/' + encodeURIComponent(ctx.type || '') + '/' + encodeURIComponent(ctx.id || '') + '/' + encodeURIComponent(nextVid));
 
-  // YouTube-style TV Player for webOS (Chromium 53 & webOS 3/4/5/6 compatible)
+  var isLiveType = (ctx.type === 'tv' || ctx.type === 'channel' || ctx.type === 'iptv');
+  var isM3u8 = (streamUrl.indexOf('.m3u8') >= 0 || streamUrl.indexOf('/live/') >= 0 || isLiveType);
+  var hasHeaders = !!(headers && Object.keys(headers).length > 0);
+  var playUrl = streamUrl;
+  if (streamUrl.indexOf(':11470') < 0 && (isM3u8 || hasHeaders)) {
+    var hParam = hasHeaders ? ('&h=' + encodeURIComponent(JSON.stringify(headers))) : '';
+    if (isM3u8) {
+      playUrl = 'http://127.0.0.1:' + PORT + '/hls.m3u8?u=' + encodeURIComponent(streamUrl) + hParam;
+    } else {
+      playUrl = 'http://127.0.0.1:' + PORT + '/proxy?u=' + encodeURIComponent(streamUrl) + hParam;
+    }
+  }
+
+  // Stremio TV Player for webOS (Chromium 53 & webOS 3/4/5/6 compatible)
   return '<!doctype html><html><head><meta charset="utf-8">' +
 '<meta name="viewport" content="width=device-width,initial-scale=1">' +
-'<title>' + (title ? (title + ' — ') : '') + 'YouTube Player</title>' +
+'<title>' + (title ? (title + ' — ') : '') + 'Stremio</title>' +
 '<style>' +
-'html,body{margin:0;padding:0;width:100%;height:100%;background:#000;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#fff;user-select:none;-webkit-user-select:none;}' +
+'html,body{margin:0;padding:0;width:100%;height:100%;background:#0e0d14;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#fff;user-select:none;-webkit-user-select:none;}' +
 '#v{position:fixed;top:0;left:0;width:100%;height:100%;background:#000;object-fit:contain;transition:object-fit .2s;}' +
 '#v.cover{object-fit:cover;}' +
 '#v.fill{object-fit:fill;}' +
-'#gocov{position:fixed;top:0;left:0;right:0;bottom:0;background:#0c0b11;z-index:2147483647;display:none;}' +
-'/* YouTube Buffering Spinner */' +
-'#buf{position:fixed;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(0,0,0,0.45);z-index:15;pointer-events:none;}' +
+'#gocov{position:fixed;top:0;left:0;right:0;bottom:0;background:#0e0d14;z-index:2147483647;display:none;}' +
+'/* Stremio Buffering Spinner */' +
+'#buf{position:fixed;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(14,13,20,0.65);z-index:15;pointer-events:none;}' +
 '#buf.show{display:-webkit-flex;display:flex;}' +
 '.yt-spinner{width:76px;height:76px;animation:ytRot 1.4s linear infinite;}' +
 '@keyframes ytRot{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}' +
-'.yt-spinner-circle{stroke:#ff0000;stroke-dasharray:90,200;stroke-dashoffset:0;animation:ytDash 1.4s ease-in-out infinite;}' +
+'.yt-spinner-circle{stroke:#7b5bf5;stroke-dasharray:90,200;stroke-dashoffset:0;animation:ytDash 1.4s ease-in-out infinite;}' +
 '@keyframes ytDash{0%{stroke-dasharray:1,200;stroke-dashoffset:0;}50%{stroke-dasharray:90,200;stroke-dashoffset:-35px;}100%{stroke-dasharray:90,200;stroke-dashoffset:-125px;}}' +
-'#bufMsg{margin-top:18px;font-size:22px;font-weight:600;color:rgba(255,255,255,0.9);text-shadow:0 2px 10px #000;letter-spacing:0.5px;}' +
+'#bufMsg{margin-top:18px;font-size:22px;font-weight:600;color:rgba(255,255,255,0.92);text-shadow:0 2px 10px #000;letter-spacing:0.5px;}' +
 '/* Loading Splash */' +
 '#load{position:fixed;top:0;left:0;right:0;bottom:0;background:#08070d center/cover no-repeat;z-index:12;transition:opacity .4s ease;}' +
-'#load:before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0.55),rgba(0,0,0,0.92));}' +
+'#load:before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at center,rgba(14,13,20,0.65),rgba(14,13,20,0.95));}' +
 '#load .lwrap{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;padding:0 40px;}' +
 '#lname{font-size:52px;font-weight:800;max-width:85%;margin:0 auto 16px;text-shadow:0 4px 24px #000;}' +
 '#lname img{display:block;margin:0 auto;max-width:440px;max-height:160px;filter:drop-shadow(0 6px 24px rgba(0,0,0,0.9));}' +
-'#loadStatus{font-size:24px;color:rgba(255,255,255,0.8);font-weight:600;margin-top:18px;text-shadow:0 2px 10px #000;}' +
+'#loadStatus{font-size:24px;color:rgba(255,255,255,0.85);font-weight:600;margin-top:18px;text-shadow:0 2px 10px #000;}' +
 '/* Subtitles Overlay */' +
 '#sub{position:fixed;left:5%;right:5%;bottom:10%;text-align:center;line-height:1.38;z-index:10;pointer-events:none;}' +
 '#sub span{display:inline-block;font-size:38px;color:#fff;text-shadow:-2px 0 #000,2px 0 #000,0 -2px #000,0 2px #000,-1px -1px #000,1px 1px #000,0 0 6px #000;border-radius:6px;}' +
 '/* Seek Ripple Animation */' +
 '.seek-ripple{position:fixed;top:0;bottom:0;width:38%;display:none;align-items:center;justify-content:center;z-index:18;pointer-events:none;}' +
-'.seek-ripple.left{left:0;background:radial-gradient(ellipse at left center,rgba(255,255,255,0.18),transparent 70%);border-top-right-radius:50%;border-bottom-right-radius:50%;}' +
-'.seek-ripple.right{right:0;background:radial-gradient(ellipse at right center,rgba(255,255,255,0.18),transparent 70%);border-top-left-radius:50%;border-bottom-left-radius:50%;}' +
+'.seek-ripple.left{left:0;background:radial-gradient(ellipse at left center,rgba(123,91,245,0.25),transparent 70%);border-top-right-radius:50%;border-bottom-right-radius:50%;}' +
+'.seek-ripple.right{right:0;background:radial-gradient(ellipse at right center,rgba(123,91,245,0.25),transparent 70%);border-top-left-radius:50%;border-bottom-left-radius:50%;}' +
 '.seek-ripple.show{display:-webkit-flex;display:flex;animation:ripPulse .35s ease-out;}' +
 '@keyframes ripPulse{0%{transform:scale(0.85);opacity:0;}50%{transform:scale(1.04);opacity:0.95;}100%{transform:scale(1);opacity:0.85;}}' +
 '.ripple-content{text-align:center;color:#fff;text-shadow:0 4px 18px rgba(0,0,0,0.9);}' +
-'.seek-arrows{font-size:52px;font-weight:900;letter-spacing:2px;color:#ff0000;margin-bottom:6px;}' +
+'.seek-arrows{font-size:52px;font-weight:900;letter-spacing:2px;color:#8a6cf5;margin-bottom:6px;}' +
 '.seek-text{font-size:26px;font-weight:800;letter-spacing:0.5px;}' +
 '/* Toast Notification */' +
-'#toast{position:fixed;left:50%;top:50px;transform:translateX(-50%);background:rgba(20,20,25,0.94);color:#fff;font-size:22px;font-weight:600;padding:12px 28px;border-radius:28px;opacity:0;transition:opacity .25s ease;z-index:35;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.14);}' +
-'/* YouTube TV Player HUD Controls Overlay */' +
-'#hud{position:fixed;top:0;left:0;right:0;bottom:0;z-index:14;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-justify-content:space-between;justify-content:space-between;opacity:0;pointer-events:none;transition:opacity .22s ease;background:linear-gradient(to bottom,rgba(0,0,0,0.85) 0%,rgba(0,0,0,0.2) 28%,rgba(0,0,0,0.2) 68%,rgba(0,0,0,0.9) 100%);padding:36px 48px;box-sizing:border-box;}' +
+'#toast{position:fixed;left:50%;top:50px;transform:translateX(-50%);background:rgba(22,21,34,0.95);color:#fff;font-size:22px;font-weight:600;padding:12px 28px;border-radius:28px;opacity:0;transition:opacity .25s ease;z-index:35;pointer-events:none;box-shadow:0 8px 30px rgba(0,0,0,0.7);border:1px solid rgba(123,91,245,0.4);}' +
+'/* Stremio TV Player HUD Controls Overlay */' +
+'#hud{position:fixed;top:0;left:0;right:0;bottom:0;z-index:14;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;-webkit-justify-content:space-between;justify-content:space-between;opacity:0;pointer-events:none;transition:opacity .22s ease;background:linear-gradient(to bottom,rgba(14,13,20,0.92) 0%,rgba(14,13,20,0.2) 28%,rgba(14,13,20,0.2) 68%,rgba(14,13,20,0.95) 100%);padding:36px 48px;box-sizing:border-box;}' +
 '#hud.show{opacity:1;pointer-events:auto;}' +
 '/* Top Header */' +
 '#topBar{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;width:100%;}' +
-'.hud-btn{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.12);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;cursor:pointer;transition:background .15s,transform .15s;-webkit-flex-shrink:0;flex-shrink:0;margin-right:20px;}' +
-'.hud-btn:hover,.hud-btn.f{background:#fff;color:#000;transform:scale(1.08);box-shadow:0 0 0 3px #ff0000;}' +
-'.hud-btn:hover svg path,.hud-btn.f svg path{fill:#000;}' +
+'.hud-btn{width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.12);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;cursor:pointer;transition:background .15s,transform .15s,box-shadow .15s;-webkit-flex-shrink:0;flex-shrink:0;margin-right:20px;}' +
+'.hud-btn:hover,.hud-btn.f{background:linear-gradient(135deg,#8a6cf5,#6842e8);color:#fff;transform:scale(1.08);box-shadow:0 0 0 3px #fff,0 6px 20px rgba(104,66,232,0.6);}' +
+'.hud-btn:hover svg path,.hud-btn.f svg path{fill:#fff;}' +
 '#headerInfo{-webkit-flex:1;flex:1;min-width:0;}' +
 '#title{font-size:36px;font-weight:800;letter-spacing:0.3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 2px 10px #000;}' +
 '#subHeader{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;margin-top:6px;}' +
 '#tse{font-size:22px;font-weight:600;color:#c9b8ff;text-shadow:0 2px 8px #000;margin-right:14px;}' +
 '#tse:empty{display:none;}' +
-'.live-badge{background:#ff0000;color:#fff;font-size:18px;font-weight:800;padding:4px 12px;border-radius:6px;letter-spacing:1px;box-shadow:0 2px 10px rgba(255,0,0,0.5);margin-right:12px;}' +
-'.res-badge{background:rgba(255,255,255,0.18);color:#fff;font-size:18px;font-weight:700;padding:3px 10px;border-radius:6px;border:1px solid rgba(255,255,255,0.25);margin-right:12px;}' +
+'.live-badge{background:linear-gradient(135deg,#e50914,#b20710);color:#fff;font-size:18px;font-weight:800;padding:4px 12px;border-radius:6px;letter-spacing:1px;box-shadow:0 2px 10px rgba(229,9,20,0.5);margin-right:12px;border:1px solid rgba(255,255,255,0.2);}' +
+'.res-badge{background:rgba(123,91,245,0.22);color:#fff;font-size:18px;font-weight:700;padding:3px 10px;border-radius:6px;border:1px solid rgba(123,91,245,0.45);margin-right:12px;}' +
 '/* Center Playback Controls */' +
 '#centerControls{position:absolute;top:50%;left:50%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;z-index:15;}' +
-'.hud-ctrl-btn{width:84px;height:84px;border-radius:50%;background:rgba(20,20,25,0.72);border:2px solid rgba(255,255,255,0.25);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;cursor:pointer;transition:transform .15s ease,background .15s ease,box-shadow .15s ease;margin:0 28px;-webkit-flex-shrink:0;flex-shrink:0;}' +
-'.hud-ctrl-btn.main-pp{width:108px;height:108px;background:rgba(255,0,0,0.88);border-color:transparent;box-shadow:0 6px 24px rgba(255,0,0,0.5);}' +
-'.hud-ctrl-btn:hover,.hud-ctrl-btn.f{transform:scale(1.12);background:#fff;box-shadow:0 0 0 4px #ff0000,0 8px 30px rgba(0,0,0,0.8);}' +
-'.hud-ctrl-btn:hover svg path,.hud-ctrl-btn.f svg path{fill:#000;}' +
-'.hud-ctrl-btn:hover text,.hud-ctrl-btn.f text{fill:#000;}' +
-'.hud-ctrl-btn.main-pp.f{background:#fff;box-shadow:0 0 0 5px #ff0000,0 10px 36px rgba(255,0,0,0.6);}' +
-'.hud-ctrl-btn.main-pp.f svg path{fill:#ff0000;}' +
+'.hud-ctrl-btn{width:84px;height:84px;border-radius:50%;background:rgba(22,21,34,0.85);border:2px solid rgba(255,255,255,0.22);display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;cursor:pointer;transition:transform .15s ease,background .15s ease,box-shadow .15s ease;margin:0 28px;-webkit-flex-shrink:0;flex-shrink:0;}' +
+'.hud-ctrl-btn.main-pp{width:108px;height:108px;background:linear-gradient(135deg,#8a6cf5,#6842e8);border-color:transparent;box-shadow:0 6px 26px rgba(104,66,232,0.6);}' +
+'.hud-ctrl-btn:hover,.hud-ctrl-btn.f{transform:scale(1.12);background:#fff;box-shadow:0 0 0 4px #7b5bf5,0 8px 30px rgba(0,0,0,0.8);}' +
+'.hud-ctrl-btn:hover svg path,.hud-ctrl-btn.f svg path{fill:#6842e8;}' +
+'.hud-ctrl-btn:hover text,.hud-ctrl-btn.f text{fill:#6842e8;}' +
+'.hud-ctrl-btn.main-pp.f{background:#fff;box-shadow:0 0 0 5px #7b5bf5,0 10px 36px rgba(104,66,232,0.8);}' +
+'.hud-ctrl-btn.main-pp.f svg path{fill:#6842e8;}' +
 '/* Bottom Bar */' +
 '#bottomBar{position:absolute;left:48px;right:48px;bottom:36px;z-index:15;display:-webkit-flex;display:flex;-webkit-flex-direction:column;flex-direction:column;width:auto;}' +
 '#seekContainer{position:relative;width:100%;height:28px;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;cursor:pointer;margin-bottom:14px;}' +
 '#progressBar{position:relative;width:100%;height:6px;background:rgba(255,255,255,0.22);border-radius:3px;transition:height .15s ease;}' +
 '#seekContainer.seeking #progressBar,#seekContainer:hover #progressBar,#seekContainer.f #progressBar{height:10px;}' +
 '#bufferBar{position:absolute;left:0;top:0;height:100%;width:0;background:rgba(255,255,255,0.38);border-radius:3px;}' +
-'#fillBar{position:absolute;left:0;top:0;height:100%;width:0;background:#ff0000;border-radius:3px;}' +
-'#scrubberKnob{position:absolute;top:50%;left:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#ff0000;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.8);transition:transform .15s ease,width .15s ease,height .15s ease,margin .15s ease;}' +
-'#seekContainer.seeking #scrubberKnob,#seekContainer:hover #scrubberKnob,#seekContainer.f #scrubberKnob{width:24px;height:24px;margin:-12px 0 0 -12px;transform:scale(1.15);box-shadow:0 0 0 4px rgba(255,0,0,0.4);}' +
+'#fillBar{position:absolute;left:0;top:0;height:100%;width:0;background:linear-gradient(90deg,#6842e8,#8a6cf5);border-radius:3px;}' +
+'#scrubberKnob{position:absolute;top:50%;left:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;background:#8a6cf5;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.8);transition:transform .15s ease,width .15s ease,height .15s ease,margin .15s ease;}' +
+'#seekContainer.seeking #scrubberKnob,#seekContainer:hover #scrubberKnob,#seekContainer.f #scrubberKnob{width:24px;height:24px;margin:-12px 0 0 -12px;transform:scale(1.15);box-shadow:0 0 0 4px rgba(123,91,245,0.55);}' +
 '#bottomRow{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:space-between;justify-content:space-between;width:100%;}' +
 '#timeDisplay{font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;color:rgba(255,255,255,0.92);letter-spacing:0.5px;text-shadow:0 2px 8px #000;-webkit-flex-shrink:0;flex-shrink:0;}' +
 '#actionButtons{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-flex-shrink:0;flex-shrink:0;}' +
 '.hud-action-btn{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;padding:10px 18px;margin-left:14px;border-radius:24px;background:rgba(255,255,255,0.12);cursor:pointer;transition:background .15s,transform .15s,box-shadow .15s;position:relative;-webkit-flex-shrink:0;flex-shrink:0;}' +
 '.hud-action-btn:first-child{margin-left:0;}' +
 '.hud-action-btn svg{margin-right:8px;-webkit-flex-shrink:0;flex-shrink:0;}' +
-'.hud-action-btn:hover,.hud-action-btn.f{background:#fff;color:#000;transform:scale(1.06);box-shadow:0 0 0 3px #ff0000;}' +
-'.hud-action-btn:hover svg path,.hud-action-btn.f svg path{fill:#000;}' +
+'.hud-action-btn:hover,.hud-action-btn.f{background:linear-gradient(135deg,#8a6cf5,#6842e8);color:#fff;transform:scale(1.06);box-shadow:0 0 0 3px #fff,0 6px 20px rgba(104,66,232,0.6);}' +
+'.hud-action-btn:hover svg path,.hud-action-btn.f svg path{fill:#fff;}' +
 '.btn-label{font-size:20px;font-weight:700;}' +
-'.cc-dot{position:absolute;bottom:6px;right:14px;width:6px;height:6px;border-radius:50%;background:#ff0000;display:none;}' +
+'.cc-dot{position:absolute;bottom:6px;right:14px;width:6px;height:6px;border-radius:50%;background:#8a6cf5;display:none;}' +
 '.cc-dot.on{display:block;}' +
 '/* Modern Side Drawer Menu (Settings, Audio, Subtitles) */' +
 '#menuOverlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.65);z-index:40;display:none;}' +
 '#menuOverlay.show{display:block;}' +
-'#ytMenu{position:fixed;right:0;top:0;bottom:0;width:480px;background:rgba(18,17,26,0.98);box-shadow:-12px 0 45px rgba(0,0,0,0.85);border-left:1px solid rgba(255,255,255,0.12);z-index:45;display:none;padding:36px 28px;box-sizing:border-box;-webkit-flex-direction:column;flex-direction:column;}' +
+'#ytMenu{position:fixed;right:0;top:0;bottom:0;width:480px;background:rgba(14,13,20,0.98);box-shadow:-12px 0 45px rgba(0,0,0,0.85);border-left:1px solid rgba(255,255,255,0.12);z-index:45;display:none;padding:36px 28px;box-sizing:border-box;-webkit-flex-direction:column;flex-direction:column;}' +
 '#ytMenu.show{display:-webkit-flex;display:flex;animation:drawerSlide .22s ease-out;}' +
 '@keyframes drawerSlide{0%{opacity:0;transform:translateX(50px);}100%{opacity:1;transform:none;}}' +
 '.yt-menu-header{font-size:26px;font-weight:800;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.12);color:#fff;-webkit-display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:space-between;justify-content:space-between;}' +
-'.yt-menu-close{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;padding:12px 20px;border-radius:12px;background:rgba(255,255,255,0.12);font-size:20px;font-weight:700;cursor:pointer;margin-bottom:16px;color:#fff;transition:background .15s;}' +
-'.yt-menu-close:hover,.yt-menu-close.f{background:#ff0000;color:#fff;box-shadow:0 0 0 3px #fff;}' +
+'.yt-menu-close{display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;padding:12px 20px;border-radius:12px;background:rgba(255,255,255,0.12);font-size:20px;font-weight:700;cursor:pointer;margin-bottom:16px;color:#fff;transition:background .15s,box-shadow .15s;}' +
+'.yt-menu-close:hover,.yt-menu-close.f{background:linear-gradient(135deg,#8a6cf5,#6842e8);color:#fff;box-shadow:0 0 0 3px #fff;}' +
 '.yt-menu-list{-webkit-flex:1;flex:1;overflow-y:auto;padding-right:4px;}' +
-'.yt-menu-item{-webkit-display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:space-between;justify-content:space-between;padding:16px 20px;border-radius:12px;font-size:22px;font-weight:600;color:rgba(255,255,255,0.85);margin-bottom:8px;background:rgba(255,255,255,0.05);cursor:pointer;transition:background .12s,transform .12s;}' +
-'.yt-menu-item:hover,.yt-menu-item.f{background:#ff0000;color:#fff;font-weight:700;box-shadow:0 4px 18px rgba(255,0,0,0.5);transform:scale(1.02);}' +
-'.yt-menu-item.active{background:rgba(255,0,0,0.22);border:1px solid rgba(255,0,0,0.5);color:#ff6666;font-weight:700;}' +
-'.yt-menu-item.f.active{background:#ff0000;color:#fff;border-color:transparent;}' +
-'.yt-menu-item .check{font-size:22px;font-weight:800;color:#ff5555;margin-right:12px;}' +
+'.yt-menu-item{-webkit-display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;-webkit-justify-content:space-between;justify-content:space-between;padding:16px 20px;border-radius:12px;font-size:22px;font-weight:600;color:rgba(255,255,255,0.85);margin-bottom:8px;background:rgba(255,255,255,0.05);cursor:pointer;transition:background .12s,transform .12s,box-shadow .12s;}' +
+'.yt-menu-item:hover,.yt-menu-item.f{background:linear-gradient(135deg,#8a6cf5,#6842e8);color:#fff;font-weight:700;box-shadow:0 4px 18px rgba(104,66,232,0.5);transform:scale(1.02);}' +
+'.yt-menu-item.active{background:rgba(123,91,245,0.22);border:1px solid rgba(123,91,245,0.55);color:#c9b8ff;font-weight:700;}' +
+'.yt-menu-item.f.active{background:linear-gradient(135deg,#8a6cf5,#6842e8);color:#fff;border-color:transparent;}' +
+'.yt-menu-item .check{font-size:22px;font-weight:800;color:#8a6cf5;margin-right:12px;}' +
 '.yt-menu-item.f .check{color:#fff;}' +
 '.yt-menu-item .val{font-size:20px;opacity:0.8;font-weight:500;}' +
 '/* Next Episode Floating Card */' +
-'#npCard{position:fixed;right:48px;bottom:140px;width:440px;background:rgba(18,18,24,0.96);border-radius:16px;padding:22px;box-sizing:border-box;box-shadow:0 16px 48px rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.18);z-index:30;display:none;-webkit-flex-direction:column;flex-direction:column;}' +
+'#npCard{position:fixed;right:48px;bottom:140px;width:440px;background:rgba(18,17,26,0.97);border-radius:16px;padding:22px;box-sizing:border-box;box-shadow:0 16px 48px rgba(0,0,0,0.85);border:1px solid rgba(123,91,245,0.35);z-index:30;display:none;-webkit-flex-direction:column;flex-direction:column;}' +
 '#npCard.show{display:-webkit-flex;display:flex;animation:menuSlide .2s ease-out;}' +
 '@keyframes menuSlide{0%{opacity:0;transform:translateY(16px);}100%{opacity:1;transform:none;}}' +
-'.np-header{font-size:18px;font-weight:800;color:#ff0000;letter-spacing:1.5px;margin-bottom:8px;}' +
+'.np-header{font-size:18px;font-weight:800;color:#8a6cf5;letter-spacing:1.5px;margin-bottom:8px;}' +
 '.np-title{font-size:24px;font-weight:700;margin-bottom:14px;line-height:1.3;max-height:64px;overflow:hidden;}' +
 '.np-thumb{width:100%;height:200px;border-radius:10px;object-fit:cover;background:#000;margin-bottom:16px;display:none;}' +
-'.np-btn{background:#ff0000;color:#fff;text-align:center;padding:14px 0;border-radius:10px;font-size:22px;font-weight:800;cursor:pointer;transition:background .15s,transform .15s;}' +
-'.np-btn:hover,.np-btn.f{background:#fff;color:#000;box-shadow:0 0 0 3px #ff0000;transform:scale(1.03);}' +
-'.np-btn-cancel{background:rgba(255,255,255,0.14)!important;color:#fff!important;font-weight:600!important;}' +
+'.np-btn{background:linear-gradient(135deg,#8a6cf5,#6842e8);color:#fff;text-align:center;padding:14px 0;border-radius:10px;font-size:22px;font-weight:800;cursor:pointer;transition:background .15s,transform .15s;box-shadow:0 4px 16px rgba(104,66,232,0.4);}' +
+'.np-btn:hover,.np-btn.f{background:#fff;color:#6842e8;box-shadow:0 0 0 3px #8a6cf5;transform:scale(1.03);}' +
+'.np-btn-cancel{background:rgba(255,255,255,0.14)!important;color:#fff!important;font-weight:600!important;box-shadow:none!important;}' +
 '.np-btn-cancel:hover,.np-btn-cancel.f{background:#fff!important;color:#000!important;box-shadow:0 0 0 3px #fff!important;transform:scale(1.03);}' +
 '/* Post-Movie Rating Modal */' +
 '#rateModal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.86);z-index:50;display:none;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;opacity:0;transition:opacity .3s ease;}' +
 '#rateModal.show{display:-webkit-flex;display:flex;opacity:1;}' +
-'.rate-card{background:linear-gradient(135deg,rgba(26,24,38,0.98),rgba(14,13,20,0.98));border:2px solid rgba(255,255,255,0.18);box-shadow:0 18px 56px rgba(0,0,0,0.92);border-radius:24px;padding:42px 52px;text-align:center;max-width:760px;width:86%;box-sizing:border-box;}' +
-'.rate-badge{display:inline-block;background:rgba(229,9,20,0.22);color:#ff3b30;border:1px solid rgba(229,9,20,0.45);font-size:18px;font-weight:800;letter-spacing:1.5px;padding:6px 18px;border-radius:20px;margin-bottom:16px;text-transform:uppercase;}' +
+'.rate-card{background:linear-gradient(135deg,rgba(26,24,38,0.98),rgba(14,13,20,0.98));border:2px solid rgba(123,91,245,0.35);box-shadow:0 18px 56px rgba(0,0,0,0.92);border-radius:24px;padding:42px 52px;text-align:center;max-width:760px;width:86%;box-sizing:border-box;}' +
+'.rate-badge{display:inline-block;background:rgba(123,91,245,0.22);color:#c9b8ff;border:1px solid rgba(123,91,245,0.45);font-size:18px;font-weight:800;letter-spacing:1.5px;padding:6px 18px;border-radius:20px;margin-bottom:16px;text-transform:uppercase;}' +
 '.rate-title{font-size:36px;font-weight:900;color:#fff;margin-bottom:10px;text-shadow:0 2px 12px rgba(0,0,0,0.8);}' +
 '.rate-name{font-size:26px;font-weight:700;color:#ffd700;margin-bottom:12px;text-shadow:0 2px 8px rgba(0,0,0,0.8);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
 '.rate-desc{font-size:20px;color:rgba(255,255,255,0.76);margin-bottom:32px;line-height:1.4;}' +
 '.rate-actions{display:-webkit-flex;display:flex;-webkit-justify-content:center;justify-content:center;-webkit-align-items:center;align-items:center;}' +
 '.rate-btn{padding:16px 30px;margin:0 12px;border-radius:14px;font-size:22px;font-weight:800;cursor:pointer;display:-webkit-flex;display:flex;-webkit-align-items:center;align-items:center;transition:transform .18s,background .18s,box-shadow .18s;background:rgba(255,255,255,0.1);color:#fff;border:2px solid transparent;}' +
 '.rate-btn .r-ico{font-size:28px;margin-right:10px;}' +
-'.rate-btn.like-btn{background:rgba(229,9,20,0.25);border-color:rgba(229,9,20,0.45);}' +
-'.rate-btn:hover,.rate-btn.f{transform:scale(1.08);background:#fff;color:#000;box-shadow:0 0 0 4px #ff0000,0 8px 24px rgba(0,0,0,0.7);}' +
-'.rate-btn.like-btn.f{background:#ff0000;color:#fff;box-shadow:0 0 0 4px #fff,0 8px 30px rgba(229,9,20,0.8);}' +
+'.rate-btn.like-btn{background:rgba(123,91,245,0.25);border-color:rgba(123,91,245,0.45);}' +
+'.rate-btn:hover,.rate-btn.f{transform:scale(1.08);background:#fff;color:#000;box-shadow:0 0 0 4px #8a6cf5,0 8px 24px rgba(0,0,0,0.7);}' +
+'.rate-btn.like-btn.f{background:linear-gradient(135deg,#8a6cf5,#6842e8);color:#fff;box-shadow:0 0 0 4px #fff,0 8px 30px rgba(104,66,232,0.8);}' +
 '.rate-btn.skip-btn{background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.75);}' +
 '.rate-btn.skip-btn.f{background:#fff;color:#000;box-shadow:0 0 0 3px #aaa;}' +
 '</style></head><body>' +
 '<video id="v" autoplay playsinline webkit-playsinline></video>' +
 '<div id="sub"></div>' +
-'<div id="buf"><div class="yt-spinner"><svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke-width="4" stroke="#ff0000" stroke-linecap="round" class="yt-spinner-circle"></circle></svg></div><div id="bufMsg">Carregando…</div></div>' +
+'<div id="buf"><div class="yt-spinner"><svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke-width="4" stroke="#7b5bf5" stroke-linecap="round" class="yt-spinner-circle"></circle></svg></div><div id="bufMsg">Carregando…</div></div>' +
 '<div id="seekRippleLeft" class="seek-ripple left"><div class="ripple-content"><div class="seek-arrows">◀◀</div><div class="seek-text" id="seekTextLeft">10 segundos</div></div></div>' +
 '<div id="seekRippleRight" class="seek-ripple right"><div class="ripple-content"><div class="seek-arrows">▶▶</div><div class="seek-text" id="seekTextRight">10 segundos</div></div></div>' +
 '<div id="toast"></div>' +
-'<div id="load"><div class="lwrap"><div class="yt-spinner" style="margin:0 auto 20px"><svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke-width="4" stroke="#ff0000" stroke-linecap="round" class="yt-spinner-circle"></circle></svg></div><div id="lname"></div><div id="loadStatus">Iniciando reprodução…</div></div></div>' +
+'<div id="load"><div class="lwrap"><div class="yt-spinner" style="margin:0 auto 20px"><svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke-width="4" stroke="#7b5bf5" stroke-linecap="round" class="yt-spinner-circle"></circle></svg></div><div id="lname"></div><div id="loadStatus">Iniciando reprodução…</div></div></div>' +
 '<div id="hud">' +
 '  <div id="topBar">' +
 '    <div id="backBtn" class="hud-btn" title="Voltar">' +
@@ -763,7 +776,7 @@ function playerPage(stream, ctx) {
 '<div id="gocov"></div>' +
 '<div id="rateModal"><div class="rate-card"><div class="rate-badge">🎉 Concluído</div><div class="rate-title">O que você achou do filme?</div><div id="rateName" class="rate-name"></div><div class="rate-desc">Sua opinião ajuda a melhorar suas recomendações personalizadas na tela inicial.</div><div class="rate-actions"><div id="btnRateLike" class="rate-btn like-btn"><span class="r-ico">👍</span><span>Gostei / Curtir</span></div><div id="btnRateDislike" class="rate-btn"><span class="r-ico">👎</span><span>Não curti</span></div><div id="btnRateSkip" class="rate-btn skip-btn"><span class="r-ico">✕</span><span>Fechar</span></div></div></div></div>' +
 '<script>(function(){' +
-'var URL=' + JSON.stringify(streamUrl) + ',TITLE=' + JSON.stringify(title) + ',TYPE=' + JSON.stringify(ctx.type || '') + ',ID=' + JSON.stringify(ctx.id || '') + ',VID=' + JSON.stringify(ctx.vid || '') + ',LOGO=' + JSON.stringify(meta.logo || '') + ',BG=' + JSON.stringify(meta.background || '') + ',POSTER=' + JSON.stringify(meta.poster || '') + ',SE=' + JSON.stringify(seLine) + ',NEXTVID=' + JSON.stringify(nextVid) + ',NEXTHREF=' + JSON.stringify(nextHref) + ',BACK=' + JSON.stringify(ctx.back || '') + ',NEXTTITLE=' + JSON.stringify(ctx.nextTitle || '') + ',NEXTTHUMB=' + JSON.stringify(ctx.nextThumb || '') + ',SNAME=' + JSON.stringify(String((stream.name || '') + ' ' + (stream.title || stream.description || '')).slice(0, 400)) + ';' +
+'var URL=' + JSON.stringify(playUrl) + ',ORIG_URL=' + JSON.stringify(streamUrl) + ',TITLE=' + JSON.stringify(title) + ',TYPE=' + JSON.stringify(ctx.type || '') + ',ID=' + JSON.stringify(ctx.id || '') + ',VID=' + JSON.stringify(ctx.vid || '') + ',LOGO=' + JSON.stringify(meta.logo || '') + ',BG=' + JSON.stringify(meta.background || '') + ',POSTER=' + JSON.stringify(meta.poster || '') + ',SE=' + JSON.stringify(seLine) + ',NEXTVID=' + JSON.stringify(nextVid) + ',NEXTHREF=' + JSON.stringify(nextHref) + ',BACK=' + JSON.stringify(ctx.back || '') + ',NEXTTITLE=' + JSON.stringify(ctx.nextTitle || '') + ',NEXTTHUMB=' + JSON.stringify(ctx.nextThumb || '') + ',SNAME=' + JSON.stringify(String((stream.name || '') + ' ' + (stream.title || stream.description || '')).slice(0, 400)) + ';' +
 'var v=document.getElementById("v"),hud=document.getElementById("hud"),fillBar=document.getElementById("fillBar"),bufferBar=document.getElementById("bufferBar"),scrubberKnob=document.getElementById("scrubberKnob"),timeDisplay=document.getElementById("timeDisplay"),subEl=document.getElementById("sub"),load=document.getElementById("load"),lname=document.getElementById("lname"),buf=document.getElementById("buf"),menuOverlay=document.getElementById("menuOverlay"),ytMenu=document.getElementById("ytMenu"),menuHeader=document.getElementById("menuHeader"),menuCloseBtn=document.getElementById("menuCloseBtn"),menuList=document.getElementById("menuList"),toastEl=document.getElementById("toast"),ccIndicator=document.getElementById("ccIndicator"),liveBadge=document.getElementById("liveBadge"),resBadge=document.getElementById("resBadge");' +
 'var npCard=document.getElementById("npCard"),npTitle=document.getElementById("npTitle"),npThumb=document.getElementById("npThumb"),npPlayBtn=document.getElementById("npPlayBtn"),npCancelBtn=document.getElementById("npCancelBtn"),npSec=document.getElementById("npSec");' +
 'var npTimer=null,npSecondsLeft=15,npDismissed=false,npFocusIdx=0;' +
@@ -914,9 +927,16 @@ function playerPage(stream, ctx) {
 'v.addEventListener("waiting",function(){if(!v.paused&&load.style.display==="none")buf.className="show";});' +
 'v.addEventListener("stalled",function(){if(!v.paused&&load.style.display==="none")buf.className="show";});' +
 'v.addEventListener("canplay",function(){buf.className="";});' +
-'v.addEventListener("seeked",function(){buf.className="";});' +
-'v.addEventListener("error",function(){buf.className="";var isTor=(URL.indexOf(":11470")>=0);var msg=isTor?"Torrent sem seeds suficientes ou formato não suportado. Tente outro link.":"Erro de conexão com o link de vídeo. Tente outro link ou formato.";lname.innerHTML="<div style=\\"font-size:24px;max-width:780px;margin:0 auto;line-height:1.4;background:rgba(20,20,25,0.94);padding:24px;border-radius:14px;\\"><div style=\\"font-size:26px;font-weight:800;color:#ff4444;margin-bottom:8px\\">Falha na Reprodução</div>"+msg+"<br><a href=\\"#\\" onclick=\\"exit();return false;\\" style=\\"display:inline-block;margin-top:16px;padding:10px 24px;background:#ff0000;color:#fff;border-radius:8px;text-decoration:none;font-weight:700;font-size:20px;\\">Voltar</a></div>";load.style.display="block";load.style.opacity="1";});' +
-'var hudTimer=null,hudState="hidden",focusZone="center",focusIdx=1;' +
+'var hasError=false;' +
+'v.addEventListener("error",function(){' +
+'  hasError=true;buf.className="";' +
+'  try{sessionStorage.setItem("stremio_failed_stream",ORIG_URL||URL);}catch(e){}' +
+'  var isTor=(URL.indexOf(":11470")>=0);' +
+'  var isLiveStream=isLive||(TYPE==="tv"||TYPE==="channel"||TYPE==="iptv");' +
+'  var msg=isTor?"Torrent sem seeds suficientes ou formato não suportado pela TV. Escolha outro stream na lista.":(isLiveStream?"Transmissão de TV indisponível ou sinal instável no momento. Escolha outro canal ou link.":"Erro de conexão com o link de vídeo. Escolha outro link na lista.");' +
+'  lname.innerHTML="<div style=\\"font-size:24px;max-width:760px;margin:0 auto;line-height:1.4;background:rgba(14,13,20,0.96);padding:32px;border-radius:18px;border:1px solid rgba(123,91,245,0.35);box-shadow:0 14px 44px rgba(0,0,0,0.85);\\"><div style=\\"font-size:28px;font-weight:800;color:#ff5555;margin-bottom:12px\\">⚠️ Falha na Reprodução</div><div style=\\"font-size:20px;color:rgba(255,255,255,0.85);margin-bottom:20px\\">"+msg+"</div><div id=\\"errBackBtn\\" onclick=\\"exit();return false;\\" style=\\"display:inline-block;padding:14px 34px;background:linear-gradient(135deg,#8a6cf5,#6842e8);color:#fff;border-radius:12px;font-weight:700;font-size:22px;box-shadow:0 6px 20px rgba(104,66,232,0.5);cursor:pointer;\\">Voltar aos Streams</div></div>";' +
+'  load.style.display="block";load.style.opacity="1";' +
+'});' +
 'function showHUD(){hud.className="show";hudState="visible";clearTimeout(hudTimer);hudTimer=setTimeout(function(){if(hudState==="visible"&&!v.paused&&menuState==="hidden"){hud.className="";hudState="hidden";}},4000);}' +
 'function hideHUD(){hud.className="";hudState="hidden";clearTimeout(hudTimer);}' +
 'function togglePlay(){if(v.paused)v.play();else v.pause();updatePlayIcons();showHUD();}' +
@@ -1189,6 +1209,7 @@ function playerPage(stream, ctx) {
 '  if(rateModal&&rateModal.className.indexOf("show")>=0){' +
 '    exit();return;' +
 '  }' +
+'  if(hasError){exit();return;}' +
 '  if(npCard&&npCard.className.indexOf("show")>=0){' +
 '    dismissNextEpCard();' +
 '    return;' +
@@ -1207,6 +1228,7 @@ function playerPage(stream, ctx) {
 'try{history.pushState({player:1},"",location.href);}catch(e){}' +
 'window.addEventListener("popstate",function(e){' +
 '  if(rateModal&&rateModal.className.indexOf("show")>=0){exit();return;}' +
+'  if(hasError){exit();return;}' +
 '  if(npCard&&npCard.className.indexOf("show")>=0){dismissNextEpCard();try{history.pushState({player:1},"",location.href);}catch(err){}return;}' +
 '  if(menuState==="visible"){closeMenu();try{history.pushState({player:1},"",location.href);}catch(err){}return;}' +
 '  if(hudState==="visible"){hideHUD();try{history.pushState({player:1},"",location.href);}catch(err){}return;}' +
@@ -1219,6 +1241,9 @@ function playerPage(stream, ctx) {
 '  if(k===4)k=37;' +
 '  if(k===5)k=39;' +
 '  if(k===29443||k===65376)k=13;' +
+'  if(hasError){' +
+'    if(k===13||k===461||k===8||k===27||k===10009||k===88){exit();e.preventDefault();return;}' +
+'  }' +
 '  if(k===461||k===8||k===27||k===10009||k===88){' +
 '    handlePlayerBack(e);return;' +
 '  }' +
@@ -1483,15 +1508,27 @@ function fetchJson(u, cb) { fetchUrl(u, function (buf) { if (!buf) return cb(nul
 // debrid redirects, and streams the bytes back, honouring Range so ffmpeg can seek.
 function localProxy(u) { return 'http://127.0.0.1:' + PORT + '/proxy?u=' + encodeURIComponent(u); }
 var resolveCache = {}; // original debrid url -> { url: resolved-CDN-url, at: ts }
-function proxyStream(target, range, method, clientRes, orig, depth, triedFresh) {
+function proxyStream(target, range, method, clientRes, orig, depth, triedFresh, customHeaders) {
   depth = depth || 0;
   if (!target || depth > 6) { try { if (!clientRes.headersSent) clientRes.writeHead(502, { 'Access-Control-Allow-Origin': '*' }); clientRes.end(); } catch (e) {} return; }
   var pu;
   try { pu = urlmod.parse(target); } catch (e) { try { clientRes.writeHead(502, { 'Access-Control-Allow-Origin': '*' }); clientRes.end(); } catch (x) {} return; }
   var lib = pu.protocol === 'https:' ? https : http;
-  var hdrs = { 'User-Agent': 'Stremio-TV/1.0', 'Accept': '*/*', 'Accept-Encoding': 'identity' };
+  var hdrs = {
+    'User-Agent': (customHeaders && (customHeaders['User-Agent'] || customHeaders['user-agent'])) || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0',
+    'Accept': '*/*',
+    'Accept-Encoding': 'identity'
+  };
+  if (customHeaders) {
+    for (var k in customHeaders) {
+      var lk = k.toLowerCase();
+      if (lk !== 'connection' && lk !== 'host' && lk !== 'range') {
+        hdrs[k] = customHeaders[k];
+      }
+    }
+  }
   if (range) hdrs.Range = range;
-  var opts = { protocol: pu.protocol, hostname: pu.hostname, port: pu.port, path: pu.path, method: method === 'HEAD' ? 'HEAD' : 'GET', headers: hdrs };
+  var opts = { protocol: pu.protocol, hostname: pu.hostname, port: pu.port, path: pu.path, method: method === 'HEAD' ? 'HEAD' : 'GET', headers: hdrs, rejectUnauthorized: false };
   var upReq;
   try { upReq = lib.request(opts, onUp); } catch (e) { try { clientRes.writeHead(502, { 'Access-Control-Allow-Origin': '*' }); clientRes.end(); } catch (x) {} return; }
   function onUp(up) {
@@ -1500,12 +1537,12 @@ function proxyStream(target, range, method, clientRes, orig, depth, triedFresh) 
       up.resume();
       var loc = up.headers.location;
       if (loc.indexOf('http') !== 0) loc = pu.protocol + '//' + pu.host + (loc.charAt(0) === '/' ? '' : '/') + loc;
-      return proxyStream(loc, range, method, clientRes, orig, depth + 1, triedFresh);
+      return proxyStream(loc, range, method, clientRes, orig, depth + 1, triedFresh, customHeaders);
     }
     // A cached signed CDN url likely expired — restart from the original once.
     if ((sc === 403 || sc === 410 || sc === 404) && !triedFresh && target !== orig) {
       up.resume(); delete resolveCache[orig];
-      return proxyStream(orig, range, method, clientRes, orig, 0, true);
+      return proxyStream(orig, range, method, clientRes, orig, 0, true, customHeaders);
     }
     if (orig) resolveCache[orig] = { url: target, at: Date.now() }; // remember the working CDN url
     var h = {
@@ -1519,8 +1556,6 @@ function proxyStream(target, range, method, clientRes, orig, depth, triedFresh) 
     if (!h['accept-ranges']) h['accept-ranges'] = 'bytes';
     try { clientRes.writeHead(sc, h); } catch (e) { try { up.destroy(); } catch (x) {} return; }
     // CLEAR the request timeout once streaming begins!
-    // When the TV video decoder pauses socket read (flow control) during playback,
-    // Node.js triggers setTimeout(20000) and aborts the connection mid-movie if not cleared!
     try { upReq.setTimeout(0); } catch (e) {}
     up.pipe(clientRes);
     up.on('error', function () { try { clientRes.end(); } catch (e) {} });
@@ -1535,6 +1570,124 @@ function proxyStream(target, range, method, clientRes, orig, depth, triedFresh) 
   });
   clientRes.on('close', function () { try { upReq.abort(); } catch (e) {} }); // ffmpeg drops the connection on every seek
   upReq.end();
+}
+
+function fetchM3u8(targetUrl, customHeaders, depth, cb) {
+  depth = depth || 0;
+  if (depth > 6) return cb('Too many redirects');
+  var pu;
+  try { pu = urlmod.parse(targetUrl); } catch (e) { return cb('Invalid URL: ' + e.message); }
+  var lib = pu.protocol === 'https:' ? https : http;
+  var reqHeaders = {
+    'User-Agent': (customHeaders && (customHeaders['User-Agent'] || customHeaders['user-agent'])) || 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:147.0) Gecko/20100101 Firefox/147.0',
+    'Accept': '*/*',
+    'Accept-Language': 'pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7',
+    'Connection': 'keep-alive'
+  };
+  if (customHeaders) {
+    for (var k in customHeaders) {
+      var lk = k.toLowerCase();
+      if (lk !== 'connection' && lk !== 'host') {
+        reqHeaders[k] = customHeaders[k];
+      }
+    }
+  }
+  var opts = {
+    protocol: pu.protocol,
+    hostname: pu.hostname,
+    port: pu.port,
+    path: pu.path,
+    method: 'GET',
+    headers: reqHeaders,
+    rejectUnauthorized: false
+  };
+  var req = lib.request(opts, function (r) {
+    var sc = r.statusCode;
+    if (sc >= 300 && sc < 400 && r.headers.location) {
+      r.resume();
+      var loc = r.headers.location;
+      if (loc.indexOf('http') !== 0) loc = urlmod.resolve(targetUrl, loc);
+      return fetchM3u8(loc, customHeaders, depth + 1, cb);
+    }
+    if (sc !== 200) {
+      r.resume();
+      return cb('Upstream HTTP ' + sc);
+    }
+    var chunks = [];
+    r.on('data', function (c) { chunks.push(c); });
+    r.on('end', function () {
+      var buf = Buffer.concat(chunks);
+      var enc = r.headers['content-encoding'];
+      if (enc === 'gzip' || (buf.length > 1 && buf[0] === 0x1f && buf[1] === 0x8b)) {
+        try { buf = zlib.gunzipSync(buf); } catch (e) {}
+      } else if (enc === 'deflate') {
+        try { buf = zlib.inflateSync(buf); } catch (e) {}
+      }
+      cb(null, buf.toString('utf8'), targetUrl);
+    });
+  });
+  req.on('error', function (err) { cb(err && err.message); });
+  req.setTimeout(15000, function () {
+    try { req.abort(); } catch (e) {}
+    cb('Timeout fetching m3u8 playlist');
+  });
+  req.end();
+}
+
+function rewriteM3u8(text, baseUrl, customHeaders) {
+  var hParam = customHeaders && Object.keys(customHeaders).length ? ('&h=' + encodeURIComponent(JSON.stringify(customHeaders))) : '';
+  var lines = text.split('\n');
+  var out = [];
+  for (var i = 0; i < lines.length; i++) {
+    var line = lines[i].trim();
+    if (!line) { out.push(''); continue; }
+    if (line.charAt(0) === '#') {
+      if (line.indexOf('URI="') >= 0) {
+        line = line.replace(/URI="([^"]+)"/g, function (m, uri) {
+          var resolved = urlmod.resolve(baseUrl, uri);
+          return 'URI="http://127.0.0.1:' + PORT + '/proxy?u=' + encodeURIComponent(resolved) + hParam + '"';
+        });
+      }
+      out.push(line);
+      continue;
+    }
+    var resolvedUrl = urlmod.resolve(baseUrl, line);
+    if (resolvedUrl.indexOf('.m3u8') >= 0) {
+      out.push('http://127.0.0.1:' + PORT + '/hls.m3u8?u=' + encodeURIComponent(resolvedUrl) + hParam);
+    } else {
+      out.push('http://127.0.0.1:' + PORT + '/proxy?u=' + encodeURIComponent(resolvedUrl) + hParam);
+    }
+  }
+  return out.join('\n');
+}
+
+function handleHlsProxy(req, res, q) {
+  var target = q.u;
+  if (!target) {
+    res.writeHead(400, { 'Content-Type': 'text/plain', 'Access-Control-Allow-Origin': '*' });
+    res.end('Missing target u');
+    return;
+  }
+  var customHeaders = null;
+  if (q.h) {
+    try { customHeaders = typeof q.h === 'string' ? JSON.parse(q.h) : q.h; } catch (e) {}
+  }
+  fetchM3u8(target, customHeaders, 0, function (err, content, finalUrl) {
+    if (err || !content) {
+      res.writeHead(502, { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Falha no stream HLS: ' + (err || 'vazio'));
+      return;
+    }
+    var rewritten = rewriteM3u8(content, finalUrl, customHeaders);
+    res.writeHead(200, {
+      'Content-Type': 'application/vnd.apple.mpegurl; charset=utf-8',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, HEAD, OPTIONS',
+      'Access-Control-Allow-Headers': '*',
+      'Cache-Control': 'no-cache, no-store, must-revalidate'
+    });
+    res.end(rewritten);
+  });
 }
 function parseSrt(srt) {
   srt = srt.replace(/\r/g, '');
@@ -1955,11 +2108,18 @@ var mainServer = http.createServer(function (req, res) {
     if (!stream && q.u) stream = { url: q.u }; // beta shell passes the stream URL directly
     if (!stream || !stream.url) {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end('<body style="background:#000;color:#fff;font-family:sans-serif;text-align:center;padding-top:40vh">Não foi possível ler o link do vídeo. <a style="color:#ff0000;font-weight:bold" href="http://127.0.0.1:8080/beta">Voltar ao Stremio</a></body>');
+      res.end('<body style="background:#0e0d14;color:#fff;font-family:sans-serif;text-align:center;padding-top:40vh">Não foi possível ler o link do vídeo. <a style="color:#7b5bf5;font-weight:bold" href="http://127.0.0.1:8080/beta">Voltar ao Stremio</a></body>');
       return;
     }
     if (stream.url.indexOf(':11470') >= 0) {
       ensureStreamingServer();
+    }
+    var headers = null;
+    if (q.h) {
+      try { headers = typeof q.h === 'string' ? JSON.parse(q.h) : q.h; } catch (e) {}
+    }
+    if (!headers && stream.behaviorHints && stream.behaviorHints.proxyHeaders && stream.behaviorHints.proxyHeaders.request) {
+      headers = stream.behaviorHints.proxyHeaders.request;
     }
     var ctx = {
       type: q.type || '',
@@ -1983,7 +2143,7 @@ var mainServer = http.createServer(function (req, res) {
       ctx.nextVid = pp[0] + ':' + ctx.season + ':' + (parseInt(ctx.episode, 10) + 1);
     }
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-    res.end(playerPage(stream, ctx));
+    res.end(playerPage(stream, ctx, headers));
   } else if (p === '/meta') {
     fetchJson('https://v3-cinemeta.strem.io/meta/' + encodeURIComponent(q.type || 'movie') + '/' + encodeURIComponent(q.id || '') + '.json', function (j) {
       var meta = (j && j.meta) || {};
@@ -2004,11 +2164,17 @@ var mainServer = http.createServer(function (req, res) {
     });
   } else if (p === '/sub') {
     fetchUrl(q.u || '', function (buf) { sendJson(res, { cues: buf ? parseSrt(buf.toString('utf8')) : [] }); });
+  } else if (p === '/hls.m3u8' || p === '/hls') {
+    handleHlsProxy(req, res, q);
   } else if (p === '/proxy') {
     var orig = q.u || '';
+    var customH = null;
+    if (q.h) {
+      try { customH = typeof q.h === 'string' ? JSON.parse(q.h) : q.h; } catch (e) {}
+    }
     var c = resolveCache[orig];
     var start = (c && (Date.now() - c.at) < 120000) ? c.url : orig; // reuse a fresh resolved CDN url
-    proxyStream(start, req.headers.range, req.method, res, orig, 0, false);
+    proxyStream(start, req.headers.range, req.method, res, orig, 0, false, customH);
   } else if (p === '/watchedbits') {
     // Decode Stremio's watched bitfield: "<anchorVideoId>:<anchorLen>:<zlib-b64>".
     // The browser has no zlib, so we inflate here and hand back raw bits.

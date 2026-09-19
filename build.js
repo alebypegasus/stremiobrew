@@ -3,19 +3,19 @@ const path = require('path');
 const crypto = require('crypto');
 const { execSync } = require('child_process');
 
-console.log('=== Stremiobrew Multi-Target Build System (v5.0.4) ===');
+console.log('=== Stremiobrew Multi-Target Build System (v5.0.5) ===');
 
 const BASE_URL = 'https://stremiobrew.vercel.app';
-const VERSION = '5.0.4';
+const LEGACY_VERSION = '5.0.5';
+const MODERN_VERSION = '5.0.4';
 
 // -------------------------------------------------------------
 // 1. BUILD LEGACY (webOS 3.x - 4.x / 2016-2019)
 // -------------------------------------------------------------
-const LEGACY_VERSION = VERSION;
 const LEGACY_ID = 'io.strem.tv.beta';
 const LEGACY_IPK = `${LEGACY_ID}_${LEGACY_VERSION}_all.ipk`;
 
-console.log('\n[1/2] Processing Legacy Package (Stremio Lite LG v5.0.4)...');
+console.log('\n[1/2] Processing Legacy Package (Stremio Lite LG v5.0.5)...');
 
 if (fs.existsSync('unpacked') && fs.existsSync('control_unpacked')) {
   console.log(' - Compressing data.tar.gz...');
@@ -65,7 +65,6 @@ console.log(` -> SHA-256: ${legacySha256}`);
 // -------------------------------------------------------------
 // 2. BUILD MODERN (webOS 5.0+ / 2020-2025 / OLED C Series)
 // -------------------------------------------------------------
-const MODERN_VERSION = VERSION;
 const MODERN_ID = 'io.strem.tv';
 const MODERN_IPK = `${MODERN_ID}_${MODERN_VERSION}_all.ipk`;
 
@@ -152,26 +151,26 @@ const legacyDescriptionHtml = `<div style="font-family:sans-serif;color:#e5e7eb;
     <li><b>Requirement:</b> Rooted LG TV with <b>Homebrew Channel</b> installed.</li>
   </ul>
 
-  <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">🛠️ v5.0.4 Key Fixes & Features:</h3>
+  <h3 style="color:#38bdf8;font-size:1.05rem;margin-top:12px;">🛠️ v5.0.5 Key Fixes & Features:</h3>
   <ul>
-    <li><b>Anti-Freeze Watchdog:</b> Fixed mid-movie playback freezing caused by buffer pauses; auto-recovers hardware video decoder within seconds.</li>
+    <li><b>Stremio Dark Purple Player Theme:</b> Redesigned player overlay and controls to seamlessly match the Stremio aesthetic, replacing jarring red elements with refined dark purple and lilac accents.</li>
+    <li><b>Live TV & Sports Channels Fix:</b> Integrated local HLS proxy with header forwarding (Referer, User-Agent) enabling live TV and sports streaming (Meu Futebol & IPTV) without 403 Forbidden errors.</li>
+    <li><b>Smart Back & Error Navigation:</b> Fixed infinite auto-play loops on playback failure. Now marks failed streams and allows easy switching to alternative sources with the remote control.</li>
+    <li><b>Anti-Freeze Watchdog:</b> Mid-movie playback stall auto-recovery.</li>
     <li><b>Next Episode Continuous Play:</b> Interactive countdown card with automatic transition to the next episode (Binge-Watching).</li>
-    <li><b>Default Provider & Resolution:</b> Configure your preferred debrid/server (Real-Debrid, AllDebrid, Torrentio, Brazuca) and resolution (4K, 1080p, 720p).</li>
-    <li><b>LG Remote Full Support:</b> Red/Green/Yellow/Blue buttons, playback controls (Play, Pause, Stop, Seek, Next Track) and scroll wheel mapped.</li>
-    <li><b>Improved Addon Sync:</b> Real-time feedback and sync verification with total count display.</li>
   </ul>
 
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:24px 0;" />
 
   <!-- PORTUGUÊS -->
-  <h2 style="color:#f59e0b;font-size:1.25rem;">🇧🇷 Português — Stremio Lite & Ultra Lite LG (v5.0.4)</h2>
+  <h2 style="color:#f59e0b;font-size:1.25rem;">🇧🇷 Português — Stremio Lite & Ultra Lite LG (v5.0.5)</h2>
   <p>Edição super leve para TVs LG clássicas com root (webOS 3.x e 4.x / 2016–2019).</p>
   <ul>
-    <li><b>Fim dos Travamentos no Meio do Filme:</b> Correção do encerramento indevido de conexão por buffer e watchdog automático que recupera o decodificador sem precisar retroceder manualmente.</li>
+    <li><b>Player Totalmente Harmonizado (Tema Dark Purple Stremio):</b> Player redesenhado com visual moderno e elegante em roxo escuro e lilás, condizente com a identidade visual do Stremio.</li>
+    <li><b>Canais de TV & Esportes Ao Vivo Funcionando:</b> Proxy HLS integrado com repasse de cabeçalhos (Referer e User-Agent), corrigindo o erro 403 em transmissões de TV e futebol ao vivo.</li>
+    <li><b>Fim do Loop de Reprodução ao Dar Erro:</b> Agora, se um link falhar, você volta para a lista e pode escolher outro stream normalmente com o controle sem o app ficar insistindo no mesmo link quebrado em loop. O link com falha é destacado.</li>
+    <li><b>Watchdog Anti-Travamento:</b> Recuperação automática de reprodução caso o decodificador de vídeo da TV pause o fluxo.</li>
     <li><b>Fluxo de Próximo Episódio:</b> Card interativo de contagem regressiva com reprodução contínua e transição automática ao fim do episódio.</li>
-    <li><b>Servidor & Resolução Padrão:</b> Escolha seu servidor/debrid favorito (Real-Debrid, AllDebrid, Premiumize, Torrentio, Brazuca) e qualidade preferida (4K, 1080p, 720p).</li>
-    <li><b>Suporte Completo a Controles LG:</b> Botões coloridos (Busca, Início, Biblioteca, Descobrir), botões de mídia (Play, Pause, Avançar, Voltar, Parar) e scroll wheel.</li>
-    <li><b>Sincronização Aprimorada de Addons:</b> Feedback instantâneo com contagem de complementos sincronizados.</li>
   </ul>
 
   <hr style="border:none;border-top:1px solid rgba(255,255,255,0.15);margin:24px 0;" />
