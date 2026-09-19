@@ -575,15 +575,15 @@ function playerPage(stream, ctx, headers) {
 '#v.fill{object-fit:fill;}' +
 '#gocov{position:fixed;top:0;left:0;right:0;bottom:0;background:#0e0d14;z-index:2147483647;display:none;}' +
 '/* Stremio Buffering Spinner */' +
-'#buf{position:fixed;top:0;left:0;right:0;bottom:0;display:none;align-items:center;justify-content:center;flex-direction:column;background:rgba(14,13,20,0.65);z-index:15;pointer-events:none;}' +
+'#buf{position:fixed;top:50%;left:50%;-webkit-transform:translate(-50%,-50%);transform:translate(-50%,-50%);display:none;-webkit-align-items:center;align-items:center;-webkit-justify-content:center;justify-content:center;z-index:11;pointer-events:none;background:transparent;}' +
 '#buf.show{display:-webkit-flex;display:flex;}' +
-'.yt-spinner{width:76px;height:76px;animation:ytRot 1.4s linear infinite;}' +
+'.yt-spinner{width:64px;height:64px;animation:ytRot 1.4s linear infinite;}' +
 '@keyframes ytRot{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}' +
 '.yt-spinner-circle{stroke:#7b5bf5;stroke-dasharray:90,200;stroke-dashoffset:0;animation:ytDash 1.4s ease-in-out infinite;}' +
 '@keyframes ytDash{0%{stroke-dasharray:1,200;stroke-dashoffset:0;}50%{stroke-dasharray:90,200;stroke-dashoffset:-35px;}100%{stroke-dasharray:90,200;stroke-dashoffset:-125px;}}' +
-'#bufMsg{margin-top:18px;font-size:22px;font-weight:600;color:rgba(255,255,255,0.92);text-shadow:0 2px 10px #000;letter-spacing:0.5px;}' +
+'#bufMsg{display:none;}' +
 '/* Loading Splash */' +
-'#load{position:fixed;top:0;left:0;right:0;bottom:0;background:#08070d center/cover no-repeat;z-index:12;transition:opacity .4s ease;}' +
+'#load{position:fixed;top:0;left:0;right:0;bottom:0;background:#08070d center/cover no-repeat;z-index:12;transition:opacity .35s ease;pointer-events:none;}' +
 '#load:before{content:"";position:absolute;top:0;left:0;right:0;bottom:0;background:radial-gradient(ellipse at center,rgba(14,13,20,0.65),rgba(14,13,20,0.95));}' +
 '#load .lwrap{position:absolute;top:50%;left:0;right:0;transform:translateY(-50%);text-align:center;padding:0 40px;}' +
 '#lname{font-size:52px;font-weight:800;max-width:85%;margin:0 auto 16px;text-shadow:0 4px 24px #000;}' +
@@ -694,7 +694,7 @@ function playerPage(stream, ctx, headers) {
 '</style></head><body>' +
 '<video id="v" autoplay playsinline webkit-playsinline></video>' +
 '<div id="sub"></div>' +
-'<div id="buf"><div class="yt-spinner"><svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke-width="4" stroke="#7b5bf5" stroke-linecap="round" class="yt-spinner-circle"></circle></svg></div><div id="bufMsg">Carregando…</div></div>' +
+'<div id="buf"><div class="yt-spinner"><svg viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke-width="4" stroke="#7b5bf5" stroke-linecap="round" class="yt-spinner-circle"></circle></svg></div></div>' +
 '<div id="seekRippleLeft" class="seek-ripple left"><div class="ripple-content"><div class="seek-arrows">◀◀</div><div class="seek-text" id="seekTextLeft">10 segundos</div></div></div>' +
 '<div id="seekRippleRight" class="seek-ripple right"><div class="ripple-content"><div class="seek-arrows">▶▶</div><div class="seek-text" id="seekTextRight">10 segundos</div></div></div>' +
 '<div id="toast"></div>' +
@@ -917,16 +917,18 @@ function playerPage(stream, ctx, headers) {
 '    lastPlayTime=v.currentTime;lastCheckTime=now;stallNudgeCount=0;' +
 '  }' +
 '},1000);' +
+'function hideLoad(){clearTimeout(hideLoadT);load.style.opacity="0";load.style.pointerEvents="none";setTimeout(function(){load.style.display="none";},300);buf.className="";}' +
 'function doPlay(){try{var p=v.play();if(p&&p.catch){p.catch(function(){showToast("Pressione OK para reproduzir");});}}catch(e){}}' +
 'setTimeout(doPlay,50);' +
-'document.addEventListener("click",function(){if(v.paused)doPlay();});' +
-'var hideLoadT=setTimeout(function(){if(load.style.display!=="none"){document.getElementById("loadStatus").textContent=(URL.indexOf(":11470")>=0?"Conectando aos peers do torrent…":"Aguardando resposta do servidor…");}},3500);' +
-'function onPlaying(){clearTimeout(hideLoadT);load.style.opacity="0";setTimeout(function(){load.style.display="none";},400);buf.className="";showHUD();lazyProbe();checkResume();}' +
+'document.addEventListener("click",function(){if(v.paused)doPlay();if(load.style.display!=="none")hideLoad();});' +
+'var hideLoadT=setTimeout(function(){if(load.style.display!=="none"&&!hasError){var st=document.getElementById("loadStatus");if(st)st.textContent=(URL.indexOf(":11470")>=0?"Conectando aos peers do torrent…":"Aguardando resposta do servidor…");}},2500);' +
+'setTimeout(function(){if(load.style.display!=="none"&&!hasError){hideLoad();}},4500);' +
+'function onPlaying(){hideLoad();showHUD();lazyProbe();checkResume();}' +
 'v.addEventListener("playing",onPlaying);' +
-'v.addEventListener("loadeddata",function(){setTimeout(onPlaying,100);checkResume();});' +
-'v.addEventListener("waiting",function(){if(!v.paused&&load.style.display==="none")buf.className="show";});' +
-'v.addEventListener("stalled",function(){if(!v.paused&&load.style.display==="none")buf.className="show";});' +
-'v.addEventListener("canplay",function(){buf.className="";});' +
+'v.addEventListener("loadeddata",function(){setTimeout(onPlaying,80);checkResume();});' +
+'v.addEventListener("canplay",function(){buf.className="";if(load.style.display!=="none")hideLoad();});' +
+'var bufTimer=null;' +
+'v.addEventListener("waiting",function(){if(!v.paused&&!v.seeking&&v.readyState<3&&load.style.display==="none"){buf.className="show";clearTimeout(bufTimer);bufTimer=setTimeout(function(){buf.className="";},2500);}});' +
 'var hasError=false;' +
 'v.addEventListener("error",function(){' +
 '  hasError=true;buf.className="";' +
@@ -937,13 +939,15 @@ function playerPage(stream, ctx, headers) {
 '  lname.innerHTML="<div style=\\"font-size:24px;max-width:760px;margin:0 auto;line-height:1.4;background:rgba(14,13,20,0.96);padding:32px;border-radius:18px;border:1px solid rgba(123,91,245,0.35);box-shadow:0 14px 44px rgba(0,0,0,0.85);\\"><div style=\\"font-size:28px;font-weight:800;color:#ff5555;margin-bottom:12px\\">⚠️ Falha na Reprodução</div><div style=\\"font-size:20px;color:rgba(255,255,255,0.85);margin-bottom:20px\\">"+msg+"</div><div id=\\"errBackBtn\\" onclick=\\"exit();return false;\\" style=\\"display:inline-block;padding:14px 34px;background:linear-gradient(135deg,#8a6cf5,#6842e8);color:#fff;border-radius:12px;font-weight:700;font-size:22px;box-shadow:0 6px 20px rgba(104,66,232,0.5);cursor:pointer;\\">Voltar aos Streams</div></div>";' +
 '  load.style.display="block";load.style.opacity="1";' +
 '});' +
-'function showHUD(){hud.className="show";hudState="visible";clearTimeout(hudTimer);hudTimer=setTimeout(function(){if(hudState==="visible"&&!v.paused&&menuState==="hidden"){hud.className="";hudState="hidden";}},4000);}' +
+'function showHUD(){hud.className="show";hudState="visible";if(typeof paintFocus==="function")paintFocus();clearTimeout(hudTimer);hudTimer=setTimeout(function(){if(hudState==="visible"&&!v.paused&&menuState==="hidden"){hud.className="";hudState="hidden";}},4000);}' +
 'function hideHUD(){hud.className="";hudState="hidden";clearTimeout(hudTimer);}' +
 'function togglePlay(){if(v.paused)v.play();else v.pause();updatePlayIcons();showHUD();}' +
 'function updatePlayIcons(){var p=v.paused;document.getElementById("icPlay").style.display=p?"block":"none";document.getElementById("icPause").style.display=p?"none":"block";}' +
 'v.addEventListener("play",updatePlayIcons);' +
 'v.addEventListener("pause",function(){updatePlayIcons();showHUD();});' +
 'v.addEventListener("timeupdate",function(){' +
+'  if(load.style.display!=="none"&&v.currentTime>0){hideLoad();}' +
+'  if(buf.className.indexOf("show")>=0){buf.className="";}' +
 '  if(seekAccum<0){' +
 '    if(v.duration&&v.duration!==Infinity&&!isNaN(v.duration)){' +
 '      var pct=(v.currentTime/v.duration)*100;' +
@@ -967,7 +971,10 @@ function playerPage(stream, ctx, headers) {
 '});' +
 'var seekAccum=-1,seekTimer=null,seekRippleTimer=null,SEEK_STEP=10;' +
 'function seekBy(delta){' +
-'  if(!v.duration||v.duration===Infinity||isNaN(v.duration))return;' +
+'  if(isLive||!v.duration||v.duration===Infinity||isNaN(v.duration)){' +
+'    if(isLive)showToast("Transmissão ao vivo");' +
+'    return;' +
+'  }' +
 '  var base=(seekAccum>=0?seekAccum:v.currentTime);' +
 '  seekAccum=Math.max(0,Math.min(v.duration,base+delta));' +
 '  var diff=Math.round(seekAccum-v.currentTime);' +
@@ -991,6 +998,7 @@ function playerPage(stream, ctx, headers) {
 '    document.getElementById("seekContainer").className="";' +
 '  },600);' +
 '}' +
+'var focusZone="center",focusIdx=1;' +
 'var ctrlBtns=[document.getElementById("btnRw"),document.getElementById("btnPP"),document.getElementById("btnFf")];' +
 'var actionBtns=[document.getElementById("btnNext"),document.getElementById("btnSubs"),document.getElementById("btnAudio"),document.getElementById("btnSpeed"),document.getElementById("btnAspect"),document.getElementById("btnSettings")];' +
 'if(NEXTVID){document.getElementById("btnNext").style.display="flex";}' +
@@ -1241,6 +1249,8 @@ function playerPage(stream, ctx, headers) {
 '  if(k===4)k=37;' +
 '  if(k===5)k=39;' +
 '  if(k===29443||k===65376)k=13;' +
+'  if(load.style.display!=="none"&&!hasError){hideLoad();}' +
+'  if(buf.className.indexOf("show")>=0){buf.className="";}' +
 '  if(hasError){' +
 '    if(k===13||k===461||k===8||k===27||k===10009||k===88){exit();e.preventDefault();return;}' +
 '  }' +
@@ -1272,7 +1282,7 @@ function playerPage(stream, ctx, headers) {
 '    if(!v.paused)togglePlay();else{showToast("⏸ Pausado");showHUD();}' +
 '    e.preventDefault();return;' +
 '  }' +
-'  if(k===179||k===402||k===10252){' +
+'  if(k===179||k===402||k===10252||k===32){' +
 '    togglePlay();e.preventDefault();return;' +
 '  }' +
 '  if(k===413){' +
@@ -1339,8 +1349,15 @@ function playerPage(stream, ctx, headers) {
 '    }' +
 '    e.preventDefault();return;' +
 '  }' +
+'  var wasHidden=(hudState==="hidden");' +
 '  showHUD();' +
-'  if(hudState==="hidden"||focusZone==="seek"){' +
+'  if(wasHidden){' +
+'    if(k===37){seekBy(-SEEK_STEP);e.preventDefault();return;}' +
+'    if(k===39){seekBy(SEEK_STEP);e.preventDefault();return;}' +
+'    if(k===13){togglePlay();e.preventDefault();return;}' +
+'    if(k===38||k===40){focusZone="center";focusIdx=1;paintFocus();e.preventDefault();return;}' +
+'  }' +
+'  if(focusZone==="seek"){' +
 '    if(k===37){seekBy(-SEEK_STEP);e.preventDefault();return;}' +
 '    if(k===39){seekBy(SEEK_STEP);e.preventDefault();return;}' +
 '  }' +
@@ -1383,6 +1400,7 @@ function playerPage(stream, ctx, headers) {
 '      else if(btn===document.getElementById("btnAspect"))openMenu("aspect",true);' +
 '      else if(btn===document.getElementById("btnSettings"))openMenu("root",true);' +
 '    } else if(focusZone==="top"){exit();}' +
+'    else if(focusZone==="seek"){togglePlay();}' +
 '    else {togglePlay();}' +
 '    e.preventDefault();return;' +
 '  }' +
